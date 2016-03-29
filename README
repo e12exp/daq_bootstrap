@@ -1,11 +1,14 @@
 Requirements
 ============
 
-* ncureses (Debian: libncurses5-dev)
-* lex (Debian: flex)
-* yacc (Debian: bison)
+* gcc toolchain	(Debian: build-essential)
+* tmux 		(Debian: tmux)
+* readline 	(Debian: libreadline6-dev)
+* ncurses 	(Debian: libncurses5-dev)
+* lex 		(Debian: flex)
+* yacc 		(Debian: bison)
 
-Debian: apt-get install libnurses5-dev flex bison
+Debian: apt-get install build-essential tmux libreadline6-dev libnurses5-dev flex bison
 
 
 Usage
