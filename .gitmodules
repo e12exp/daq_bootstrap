@@ -1,0 +1,9 @@
+[submodule "mbs"]
+	path = mbs
+	url = gitolite@transfer.ktas.ph.tum.de:califa/mbs.git
+[submodule "ucesb"]
+	path = ucesb
+	url = gitolite@transfer.ktas.ph.tum.de:califa/ucesb.git
+[submodule "febex_set_param"]
+	path = febex_set_param
+	url = gitolite@transfer.ktas.ph.tum.de:califa/febex_set_param.git

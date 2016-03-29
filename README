@@ -1,0 +1,25 @@
+Requirements
+============
+
+* ncureses (Debian: libncurses5-dev)
+* lex (Debian: flex)
+* yacc (Debian: bison)
+
+Debian: apt-get install libnurses5-dev flex bison
+
+
+Usage
+=====
+
+./bootstrap.sh HOSTNAME
+
+Where HOSTNAME is the name or IP of the MBS PC.
+The script will compile all packages (if needed),
+connect to the MBS PC and run the data acquisition.
+
+Credits
+=======
+
+Max Winkel <max.winkel@ph.tum.de>
+2016, Mar 29
+
