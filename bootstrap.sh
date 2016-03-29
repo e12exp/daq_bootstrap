@@ -6,7 +6,7 @@ if [[ "$#" -lt "1" ]]; then
 fi
 
 HOSTNAME="$1"
-SESSION="daq_${USER}_${HOSTNAME}_test"
+SESSION="daq_${USER}_${HOSTNAME}"
 
 # Check if TMUX is already running and has session
 if $(tmux has -t $SESSION); then
