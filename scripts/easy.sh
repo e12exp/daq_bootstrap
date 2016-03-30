@@ -1,5 +1,7 @@
 #!/bin/bash
 
+source ../scripts/menu.sh
+
 if [ "$#" -lt "1" ]; then
 	echo "Usage: $0 hostname" >&2
 	exit -1
@@ -89,6 +91,8 @@ case "$CHARSET" in
 		;;
 esac
 
+TWIDTH=$(tput cols)
+
 function string_repeat {
 	STR=$(echo -en "$1")
 	N="$2"
@@ -100,27 +104,26 @@ function string_repeat {
 }
 
 function menu_headline {
-	HEADLINE1=" Easy DAQ Control Interface "
+#	HEADLINE1=" Easy DAQ Control Interface "
+	HEADLINE1=" DUCK - \e[33mD\e[39mAQ \e[33mU\e[39mser-friendly \e[33mC\e[39montrol \e[33mK\e[39mit "
 	HEADLINE2=" $1 "
-	LEN1=${#HEADLINE1}
+
+	LEN1=$(( ${#HEADLINE1} - 48 ))
 	LEN2=${#HEADLINE2}
-	if [[ "$LEN1" -gt "$LEN2" ]]; then
-		LEN=$LEN1
-		string_repeat " " $(($LEN1 - $LEN2)) HEADLINE2
-	else
-		LEN=$LEN2
-		string_repeat " " $(($LEN2 - $LEN1)) HEADLINE1
-	fi
+	POS1=$(( ($TWIDTH - 1 - $LEN1) / 2 ))
+	POS2=$(( ($TWIDTH - 1 - $LEN2) / 2 ))
+
 	TOP="$BOXLT"
 	BOTTOM="$BOXLB"
 	MIDDLE="$BOXVSEPL"
-	string_repeat "$BOXH" $LEN TOP
-	string_repeat "$BOXH" $LEN BOTTOM
-	string_repeat "$LBOXH" $LEN MIDDLE
+	string_repeat "$BOXH" $(($TWIDTH - 2)) TOP
+	string_repeat "$BOXH" $(($TWIDTH - 2)) BOTTOM
+	string_repeat "$LBOXH" $(($TWIDTH - 2)) MIDDLE
 	TOP+="$BOXRT"
 	BOTTOM+="$BOXRB"
 	MIDDLE+="$BOXVSEPR"
-	echo -en "\e[31m${TOP}\n${BOXV}\e[1;39m${HEADLINE1}\e[0;31m${BOXV}\n${MIDDLE}\n${BOXV}\e[0;1;33m${HEADLINE2}\e[0;31m${BOXV}\n${BOTTOM}\e[0m\n\n"
+
+	echo -en "\e[31m${TOP}\n${BOXV}\e[1;39m\e[${POS1}G${HEADLINE1}\e[0;31m\e[${TWIDTH}G${BOXV}\n${MIDDLE}\n${BOXV}\e[0;1;33m\e[${POS2}G${HEADLINE2}\e[0;31m\e[${TWIDTH}G${BOXV}\n${BOTTOM}\e[0m\n\n"
 }
 
 function menu_daq {
@@ -128,9 +131,10 @@ function menu_daq {
 	
 	menu_headline "MBS (Data Acquistion)"
 
-	OPTS=("Start Acquisition", "Stop Acquistion", "Restart", "Shutdown", "Return")
+	menu "Start Acquisition" "Stop Acquistion" "Restart" "Shutdown" "Return"
+	REPLY=$?
 	
-	select SEL in "${OPTS[@]}"; do
+#	select SEL in "${OPTS[@]}"; do
 
 		tmux select-pane -t 0
 		case "$REPLY" in
@@ -185,22 +189,27 @@ function menu_daq {
 
 		esac
 
-		break
+#		break
 
-	done
+#	done
 }
 
 
-function menu_triggers {
-	echo
+function menu_triggers 
+{
+	clear
+
+	menu_headline "Trigger Thresholds"
+
 	echo "Which threshold do you want to set?"
-	echo "Hint: Usually, you want to set the *GAMMA* threshold"
+	echo -e "\e[1mHint:\e[0m Usually, you want to set the \e[1mGAMMA\e[0m threshold"
 	echo
 
-	OPTS=("Timing ('Low')", "Gamma ('High')", "Proton", "Never mind, get me back to the main menu!")
+	menu "Timing ('Low')" "Gamma ('High')" "Proton" "Never mind, get me back to the main menu!"
+	REPLY=$?
 
 	THR=""
-	select SEL in "${OPTS[@]}"; do
+#	select SEL in "${OPTS[@]}"; do
 
 		case "$REPLY" in
 
@@ -215,29 +224,29 @@ function menu_triggers {
 			;;		
 
 		*)
-			break
+			return
 			;;
 		esac
 
 		echo
-		echo "Aye! Please give me the desired value for the $THR threshold [0 - 4095, empty = cancel]:"
+		echo -e "Aye! Please give me the desired value for the \e[1m$THR\e[0m threshold [0 - 4095, empty = cancel]:"
 		read THRVAL
 
 		if [ -z "$THRVAL" ]; then
 			LASTMSG="Abort, abort, abort!"
-			break
+			return
 		fi
 
 		if [ "$THRVAL" -gt "4095" ]; then
 			LASTMSG="Invalid value! Try again if sober..."
-			break
+			return
 		fi
 
 		logdo ./setpar febex.db set *.*.*.$THR $THRVAL
 		LASTMSG="Aye aye cap'n! $THR threshold set to $THRVAL. Please restart DAQ to apply the new thresholds."
 
-		break
-	done
+#		break
+#	done
 }
 
 function menu_opmode {
@@ -245,9 +254,10 @@ function menu_opmode {
 
 	menu_headline "Select operation mode"
 
-	OPTS=("Single Event - External trigger only", "Single Event - Self trigger enabled", "Single Event - External + internal coincidence", "Multi Event - Free running", "Ouh, actually, I don't think it was a good idea comming here... Could you bring me back to the main menu?")
+	menu "Single Event - External trigger only" "Single Event - Self trigger enabled" "Single Event - External + internal coincidence" "Multi Event - Free running" "Back to Main Menu" #"Ouh, actually, I don't think it was a good idea comming here... Could you bring me back to the main menu?"
+	REPLY=$?
 
-	select SEL in "${OPTS[@]}"; do
+#	select SEL in "${OPTS[@]}"; do
 
 		case "$REPLY" in
 
@@ -318,15 +328,15 @@ function menu_opmode {
 			;;
 
 		*)
-			break
+			return
 			;;
 
 		esac
 
 		LASTMSG="$LASTMSG\nRemember to restart the DAQ to apply the changes."
 
-		break
-	done
+#		break
+#	done
 }
 
 function menu_parameters {
@@ -334,7 +344,8 @@ function menu_parameters {
 
 	menu_headline "Parameters"
 
-	OPTS=("Set Operation Mode", "Set Trigger Thresholds", "Expert: Start ./setpar to manually set parameters")
+	menu "Set Operation Mode" "Set Trigger Thresholds" "Expert: Start ./setpar to manually set parameters" "Return"
+	REPLY=$?
 
 	if [ -f .febex.db.backup ]; then
 		OPTS+=("Recover last febex.db")
@@ -345,7 +356,7 @@ function menu_parameters {
 
 	OPTS+=("Return")
 
-	select SEL in "${OPTS[@]}"; do
+#	select SEL in "${OPTS[@]}"; do
 
 		case "$REPLY" in
 
@@ -393,9 +404,9 @@ function menu_parameters {
 		
 		esac
 
-		break		
+#		break		
 
-	done
+#	done
 }
 
 function create_default_config {
@@ -513,20 +524,17 @@ function menu_file {
 		echo -e "\e[7mFile open:\e[0;1m $FILENAME\e[0m\n"
 		echo
 
-		OPTS=("Close file", "Return")
-		select SEL in "${OPTS[@]}"; do
+		menu "Close file" "Return"
+		REPLY=$?
+#		select SEL in "${OPTS[@]}"; do
 			case "$REPLY" in
 				1)
-					break
 					;;
 				2)
 					return
 					;;
-				3)
-					continue
-					;;
 			esac	
-		done
+#		done
 
 		log "# Closing output file"
 
@@ -539,22 +547,20 @@ function menu_file {
 		echo -e "\e[7mFile closed\e[0m"
 		echo
 
-		OPTS=("Open output file", "Return")
-		select SEL in "${OPTS[@]}"; do
+		menu "Open output file" "Return"
+		REPLY=$?
+#		select SEL in "${OPTS[@]}"; do
 			case "$REPLY" in
 				1)
-					break
 					;;
 
 				2)
 					return
 					;;
-				*)
-					continue
-					;;
 			esac
-		done
+#		done
 
+		echo
 		echo "Enter filename to write to [$FILENAME]"
 		read -ei "$FILENAME" FNAME
 		if [[ -n "$FNAME" ]]; then
@@ -642,10 +648,13 @@ while true; do
 	LASTMSG=""
 	LASTLOG=""
 
-	OPTS=("MBS: Start/Stop Acquisition, ...", "Parameters", "Open/Close file", "Quit")
+#	OPTS=("MBS: Start/Stop Acquisition, ...", "Parameters", "Open/Close file", "Quit")
+	menu "MBS: Start/Stop Acquisition, ..." "Parameters" "Open/Close file" "Quit"
 
-	select SEL in "${OPTS[@]}"; do
+	REPLY=$?
 
+#	select SEL in "${OPTS[@]}"; do
+#
 		case "$REPLY" in
 
 		1)
@@ -667,10 +676,10 @@ while true; do
 		esac
 
 	tmux select-pane -t 1
-
-	break
-
-	done
+#
+#	break
+#
+#	done
 
 done
 
