@@ -20,6 +20,9 @@ WD=$(echo $PWD | sed -e "s#$HOME##g" | sed -e "s#^/##g")
 
 scripts/install.sh $HOSTNAME
 
+mkdir -p .run
+rm -f .run/filename
+
 tmux -2 new-session -d -s $SESSION
 #tmux new-window -t $SESSION:1 -n "DAQ $HOSTNAME"
 tmux split-window -v
@@ -44,6 +47,9 @@ tmux send-keys "sleep 5 && rate" C-m
 
 tmux select-pane -t 3
 tmux send-keys "# Reserved for ucesb event builder" C-m
+tmux split-window -v
+tmux select-pane -t 4
+tmux send-keys "# Reserved for ucesb file output" C-m
 
 tmux select-pane -t 0
 
@@ -52,6 +58,7 @@ tmux select-pane -t 1
 # tmux send-keys "cd $WD/mbs" C-m
 # tmux send-keys "./setpar febex.db" C-m
 
-tmux send-keys "cd mbs && ../scripts/easy.sh $HOSTNAME" C-m
+tmux send-keys "cd mbs" C-m
+tmux send-keys "../scripts/easy.sh $HOSTNAME" C-m
 
 tmux -2 attach -t $SESSION

@@ -25,22 +25,108 @@ function logdo {
 	$@
 }
 
+function check_status {
+	RUNNING=0
+
+	PREFIX=$1
+	PROC=$2
+
+	if [[ -f ../.run/${PREFIX}.${HOSTNAME}.pid ]]; then
+		PID=$(cat ../.run/${PREFIX}.${HOSTNAME}.pid)
+		if [[ -e /proc/$PID ]]; then
+			if [[ $(readlink /proc/$PID/exe) == *"$PROC"* ]]; then
+				RUNNING=1
+			fi
+		fi
+	fi
+
+	return $RUNNING
+}
+
 function check_ucesb {
-	OUT=$(ps aux | grep empty | grep $HOSTNAME)
-	if [ -z "$OUT" ]; then
+	check_status "eb" "/ucesb/empty/empty"
+	RUNNING=$?
+	if [[ "$RUNNING" -eq "0" ]]; then
 		# ucesb not running => Start
 		tmux select-pane -t 3
 		tmux send-keys "scripts/eventbuilder.sh $HOSTNAME" C-m
 	fi
 }
 
+if [[ $(locale charmap) == "UTF-8" ]]; then
+	CHARSET="utf-8"
+else
+	CHARSET="other"
+fi
+
+case "$CHARSET" in
+	"utf-8")
+		BOXLT="\xe2\x95\x94"
+		BOXRT="\xe2\x95\x97"
+		BOXLB="\xe2\x95\x9a"
+		BOXRB="\xe2\x95\x9d"
+		BOXH="\xe2\x95\x90"
+		BOXV="\xe2\x95\x91"
+
+		BOXVSEPL="\xe2\x95\x9f"
+		BOXVSEPR="\xe2\x95\xa2"
+
+		LBOXH="\xe2\x94\x80"
+		;;
+
+	*)
+		BOXLT="+"
+		BOXRT="+"
+		BOXLB="+"
+		BOXRB="+"
+		BOXH="-"
+		BOXV="|"
+
+		BOXVSEPL="|"
+		BOXVSEPR="|"
+
+		LBOXH="."
+		;;
+esac
+
+function string_repeat {
+	STR=$(echo -en "$1")
+	N="$2"
+	OUT="$3"
+
+	for I in $(seq 1 $N); do
+		eval "$OUT+=\"$STR\""
+	done
+}
+
+function menu_headline {
+	HEADLINE1=" Easy DAQ Control Interface "
+	HEADLINE2=" $1 "
+	LEN1=${#HEADLINE1}
+	LEN2=${#HEADLINE2}
+	if [[ "$LEN1" -gt "$LEN2" ]]; then
+		LEN=$LEN1
+		string_repeat " " $(($LEN1 - $LEN2)) HEADLINE2
+	else
+		LEN=$LEN2
+		string_repeat " " $(($LEN2 - $LEN1)) HEADLINE1
+	fi
+	TOP="$BOXLT"
+	BOTTOM="$BOXLB"
+	MIDDLE="$BOXVSEPL"
+	string_repeat "$BOXH" $LEN TOP
+	string_repeat "$BOXH" $LEN BOTTOM
+	string_repeat "$LBOXH" $LEN MIDDLE
+	TOP+="$BOXRT"
+	BOTTOM+="$BOXRB"
+	MIDDLE+="$BOXVSEPR"
+	echo -en "\e[31m${TOP}\n${BOXV}\e[1;39m${HEADLINE1}\e[0;31m${BOXV}\n${MIDDLE}\n${BOXV}\e[0;1;33m${HEADLINE2}\e[0;31m${BOXV}\n${BOTTOM}\e[0m\n\n"
+}
+
 function menu_daq {
 	clear
 	
-	echo "-----------"
-	echo "MBS submenu"
-	echo "-----------"
-	echo
+	menu_headline "MBS (Data Acquistion)"
 
 	OPTS=("Start Acquisition", "Stop Acquistion", "Restart", "Shutdown", "Return")
 	
@@ -157,10 +243,7 @@ function menu_triggers {
 function menu_opmode {
 	clear
 
-	echo "---------------------"
-	echo "Select operation mode"
-	echo "---------------------"
-	echo
+	menu_headline "Select operation mode"
 
 	OPTS=("Single Event - External trigger only", "Single Event - Self trigger enabled", "Single Event - External + internal coincidence", "Multi Event - Free running", "Ouh, actually, I don't think it was a good idea comming here... Could you bring me back to the main menu?")
 
@@ -249,10 +332,7 @@ function menu_opmode {
 function menu_parameters {
 	clear
 
-	echo "------------------"
-	echo "Parameters submenu"
-	echo "------------------"
-	echo
+	menu_headline "Parameters"
 
 	OPTS=("Set Operation Mode", "Set Trigger Thresholds", "Expert: Start ./setpar to manually set parameters")
 
@@ -327,7 +407,7 @@ function create_default_config {
 		echo
 		echo "How many FEBEX crates are you using? [1 - 4, default: 1]"
 	
-		read NCRATES
+		read -ei 1 NCRATES
 		if [ -z "$NCRATES" ]; then
 			NCRATES=1
 		fi
@@ -347,7 +427,7 @@ function create_default_config {
 			echo
 			echo "How many FEBEX modules are installed in crate $I (SFP $IDX)? [1 - 16, default: 1]"
 
-			read NFEBEX
+			read -ei 1 NFEBEX
 			if [ -z "$NFEBEX" ]; then
 				NFEBEX=1
 			fi
@@ -413,13 +493,96 @@ function create_default_config {
 	
 }
 
-if [ ! -f febex.db ]; then
+function menu_file {
 	clear
 
-	echo "-----------------------------------------"
-	echo "Welcome to the Easy DAQ control interface"
-	echo "-----------------------------------------"
-	echo
+	menu_headline "File Output"
+
+	check_status "fo" "/ucesb/empty/empty"
+	FILE_OPEN=$?
+
+	FILENAME=$(cat ../.run/filename 2>/dev/null)
+	mkdir -p ../data
+	if [[ -z "$FILENAME" ]]; then
+		TS=$(date "+%Y-%d-%m_%H-%M")
+		FILENAME="data/${TS}_0000.lmd"
+	fi
+
+	if [[ "$FILE_OPEN" -eq "1" ]]; then
+		# File output is currently active
+		echo -e "\e[7mFile open:\e[0;1m $FILENAME\e[0m\n"
+		echo
+
+		OPTS=("Close file", "Return")
+		select SEL in "${OPTS[@]}"; do
+			case "$REPLY" in
+				1)
+					break
+					;;
+				2)
+					return
+					;;
+				3)
+					continue
+					;;
+			esac	
+		done
+
+		log "# Closing output file"
+
+		tmux select-pane -t 4
+		tmux send-keys C-c
+
+		LASTMSG="Output file closed"
+	else
+		# No file is currently open
+		echo -e "\e[7mFile closed\e[0m"
+		echo
+
+		OPTS=("Open output file", "Return")
+		select SEL in "${OPTS[@]}"; do
+			case "$REPLY" in
+				1)
+					break
+					;;
+
+				2)
+					return
+					;;
+				*)
+					continue
+					;;
+			esac
+		done
+
+		echo "Enter filename to write to [$FILENAME]"
+		read -ei "$FILENAME" FNAME
+		if [[ -n "$FNAME" ]]; then
+			FILENAME=$FNAME
+		fi
+		echo "$FILENAME" > ../.run/filename
+
+		PORT=$(cat ../.run/eb.${HOSTNAME}.port)
+	
+		tmux select-pane -t 4
+		tmux send-keys "scripts/fo.sh $PORT $HOSTNAME" C-m
+
+		log "# Opened file $FILENAME"
+		LASTMSG="File output started to \e[1m${FILENAME}\e[0m"
+	fi	
+}
+
+##############################
+# Main
+##############################
+
+mkdir -p .run
+
+if [[ ! -f febex.db ]]; then
+	clear
+
+	menu_headline "Welcome to the Easy DAQ control interface"
+
 	echo "There seems to be no configuration file, yet."
 	echo "Do you want to create a default configuration file?"
 	echo
@@ -454,15 +617,19 @@ while true; do
 
 	clear
 
-	echo "--------------------------------------"
-	echo "Easy DAQ control interface - Main Menu"
-	echo "--------------------------------------"
-	echo
+	menu_headline "Main Menu"
 
 	if [ -n "$LASTLOG" ]; then
-		echo "...... Executed command line(s) ......."
-		echo -e "$LASTLOG"
-		echo "......................................."
+		HEADLINE=""
+		string_repeat "$LBOXH" 10 HEADLINE
+		HEADLINE+=" Executed command line(s) "
+		string_repeat "$LBOXH" 10 HEADLINE
+		LEN=${#HEADLINE}
+		echo $HEADLINE
+		echo -e "\e[2m$LASTLOG\e[0m"
+		HEADLINE=""
+		string_repeat "$LBOXH" $LEN HEADLINE
+		echo $HEADLINE
 		echo
 	fi
 
@@ -475,7 +642,7 @@ while true; do
 	LASTMSG=""
 	LASTLOG=""
 
-	OPTS=("MBS: Start/Stop Acquisition, ...", "Parameters", "Quit")
+	OPTS=("MBS: Start/Stop Acquisition, ...", "Parameters", "Open/Close file", "Quit")
 
 	select SEL in "${OPTS[@]}"; do
 
@@ -490,6 +657,10 @@ while true; do
 			;;
 
 		3)
+			menu_file
+			;;
+
+		4)
 			exit
 			;;
 
