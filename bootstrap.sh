@@ -18,7 +18,7 @@ fi
 
 WD=$(echo $PWD | sed -e "s#$HOME##g" | sed -e "s#^/##g")
 
-scripts/install.sh $HOSTNAME
+scripts/install.sh $HOSTNAME || exit $?
 
 mkdir -p .run
 rm -f .run/filename
