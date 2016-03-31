@@ -2,12 +2,13 @@
 
 function menu {
 	POS=0
-	TWIDTH=$(tput cols)
 	
 	# Hide cursor
 	echo -en "\e[?25l"
-	
+
 	while true; do
+		TWIDTH=$(tput cols)
+
 		IDX=0
 		for I in "$@"; do
 			if [[ "$IDX" -eq "$POS" ]]; then
@@ -16,11 +17,11 @@ function menu {
 				M1=""
 			fi
 	
-			printf "${M1}%-${TWIDTH}s\e[0m" " $(($IDX + 1))) $I"
+			printf "${M1}%-${TWIDTH}s\e[0m\n" " $(($IDX + 1))) ${I:0:$(( $TWIDTH - 10 ))}"
 	
-			if [[ "$IDX" -lt "$#" ]]; then
-				echo -en "\n"
-			fi
+#			if [[ "$IDX" -lt "$#" ]]; then
+#				echo -en "\n"
+#			fi
 	
 			IDX=$(( $IDX + 1 ))
 		done
@@ -72,7 +73,7 @@ function menu {
 			esac
 		done
 		
-		# Cursor up to start
+		# Restore cursor position
 		echo -en "\e[${#}F"
 	
 	done

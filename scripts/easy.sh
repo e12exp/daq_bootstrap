@@ -91,8 +91,6 @@ case "$CHARSET" in
 		;;
 esac
 
-TWIDTH=$(tput cols)
-
 function string_repeat {
 	STR=$(echo -en "$1")
 	N="$2"
@@ -104,6 +102,8 @@ function string_repeat {
 }
 
 function menu_headline {
+	TWIDTH=$(tput cols)
+
 #	HEADLINE1=" Easy DAQ Control Interface "
 	HEADLINE1=" DUCK - \e[33mD\e[39mAQ \e[33mU\e[39mser-friendly \e[33mC\e[39montrol \e[33mK\e[39mit "
 	HEADLINE2=" $1 "
@@ -410,8 +410,8 @@ function menu_parameters {
 }
 
 function create_default_config {
-	clear
 
+	echo
 	echo "Before we can start, I've got some simple questions."
 
 	while true; do
@@ -453,7 +453,7 @@ function create_default_config {
 		done
 	done
 
-	echo
+	clear
 	echo "Your configuration will consist of $NCRATES crate(s)."
 	for I in $(seq 0 $(($NCRATES - 1))); do
 		echo "  ${NFEB[$I]} card(s) in crate $(($I + 1))"
@@ -462,8 +462,9 @@ function create_default_config {
 	echo
 	echo "Is this correct, do you want to continue?"
 
-	OPTS=("Yes - Proceed to create configuration.", "No - Ask me again!", "Nah - Just take me to the main menu.")
-	select SEL in "${OPTS[@]}"; do
+	menu "Yes - Proceed to create configuration." "No - Ask me again!" "Nah - Just take me to the main menu."
+	REPLY=$?
+#	select SEL in "${OPTS[@]}"; do
 		case "$REPLY" in
 			1)
 				# Yeah, let's do this!
@@ -492,15 +493,10 @@ function create_default_config {
 			3)
 				;;
 
-			*)
-				echo "Please select one of the options above"
-				echo
-				continue
-				;;
 		esac
 
-		break
-	done
+#		break
+#	done
 	
 }
 
@@ -515,7 +511,7 @@ function menu_file {
 	FILENAME=$(cat ../.run/filename 2>/dev/null)
 	mkdir -p ../data
 	if [[ -z "$FILENAME" ]]; then
-		TS=$(date "+%Y-%d-%m_%H-%M")
+		TS=$(date "+%Y-%m-%d_%H-%M")
 		FILENAME="data/${TS}_0000.lmd"
 	fi
 
@@ -589,33 +585,29 @@ if [[ ! -f febex.db ]]; then
 
 	menu_headline "Welcome to the Easy DAQ control interface"
 
-	echo "There seems to be no configuration file, yet."
-	echo "Do you want to create a default configuration file?"
-	echo
-	
-	OPTS=("Yes", "No")
-
-	select SEL in "${OPTS[@]}"; do
-
-		case "$REPLY" in
-
-			1)
-				create_default_config
-				break
-				;;
-
-			2)
-				break
-				;;
-
-			3)
-				echo "Please select yes or no."
-				echo
-				;;
-
-		esac
-
-	done
+# 	echo "There seems to be no configuration file, yet."
+# 	echo "Do you want to create a default configuration file?"
+# 	echo
+# 	
+# 	menu "Yes" "No"
+# 	REPLY=$?
+# 
+# #	select SEL in "${OPTS[@]}"; do
+# 
+# 		case "$REPLY" in
+# 
+# 			1)
+ 				create_default_config
+# #				break
+# 				;;
+# 
+# 			2)
+# #				break
+# 				;;
+# 
+# 		esac
+# 
+# #	done
 fi
 
 
@@ -649,7 +641,7 @@ while true; do
 	LASTLOG=""
 
 #	OPTS=("MBS: Start/Stop Acquisition, ...", "Parameters", "Open/Close file", "Quit")
-	menu "MBS: Start/Stop Acquisition, ..." "Parameters" "Open/Close file" "Quit"
+	menu "MBS: Start/Stop Acquisition" "Parameters" "Open/Close file" "Quit"
 
 	REPLY=$?
 
