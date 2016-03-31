@@ -126,12 +126,59 @@ function menu_headline {
 	echo -en "\e[31m${TOP}\n${BOXV}\e[1;39m\e[${POS1}G${HEADLINE1}\e[0;31m\e[${TWIDTH}G${BOXV}\n${MIDDLE}\n${BOXV}\e[0;1;33m\e[${POS2}G${HEADLINE2}\e[0;31m\e[${TWIDTH}G${BOXV}\n${BOTTOM}\e[0m\n\n"
 }
 
+function shutdown {
+	echo
+	echo "Shutting down. Please wait..."
+
+	tmux select-pane -t 0
+	tmux send-keys "@shutdown" C-m
+	log "Shut down"
+	sleep 5 
+	tmux send-keys "quit" C-m
+	tmux send-keys "resl" C-m
+	sleep 5
+	tmux send-keys "exit" C-m
+	tmux send-keys "exit" C-m
+
+	tmux select-pane -t 1
+	tmux send-keys "exit" C-m
+	tmux send-keys "exit" C-m
+
+	tmux select-pane -t 1
+	tmux send-keys C-c C-c C-c
+	tmux send-keys "exit" C-m
+
+	tmux kill-session
+	exit	
+
+}
+
+function menu_shutdown {
+	clear
+
+	menu_headline "Shutdown"
+	echo "Do you want to shut down the DAQ and exit?"
+	echo
+
+	menu "Yes - Complete shutdown!" "No - Only quit this program" "No - Return to main menu"
+	case "$?" in
+		1)
+			shutdown
+			;;
+		2)
+			exit
+			;;
+		3)
+			;;
+	esac
+}
+
 function menu_daq {
 	clear
 	
 	menu_headline "MBS (Data Acquistion)"
 
-	menu "Start Acquisition" "Stop Acquistion" "Restart" "Shutdown" "Return"
+	menu "Start Acquisition" "Stop Acquistion" "Restart" "Return"
 	REPLY=$?
 	
 #	select SEL in "${OPTS[@]}"; do
@@ -157,31 +204,6 @@ function menu_daq {
 			tmux send-keys "@r" C-m
 			log "mbs> @r"
 			check_ucesb
-			;;
-
-		4)
-			clear
-			echo "Shutting down. Please wait..."
-
-			tmux send-keys "@shutdown" C-m
-			log "Shut down"
-			sleep 5 
-			tmux send-keys "quit" C-m
-			tmux send-keys "resl" C-m
-			sleep 5
-			tmux send-keys "exit" C-m
-			tmux send-keys "exit" C-m
-
-			tmux select-pane -t 1
-			tmux send-keys "exit" C-m
-			tmux send-keys "exit" C-m
-
-			tmux select-pane -t 1
-			tmux send-keys C-c C-c C-c
-			tmux send-keys "exit" C-m
-
-			tmux kill-session
-			exit	
 			;;
 
 		*)
@@ -512,7 +534,7 @@ function menu_file {
 	mkdir -p ../data
 	if [[ -z "$FILENAME" ]]; then
 		TS=$(date "+%Y-%m-%d_%H-%M")
-		FILENAME="data/${TS}_0000.lmd"
+		FILENAME="data/${TS}_.lmd"
 	fi
 
 	if [[ "$FILE_OPEN" -eq "1" ]]; then
@@ -558,6 +580,7 @@ function menu_file {
 
 		echo
 		echo "Enter filename to write to [$FILENAME]"
+		echo -e "\e[1mNote:\e[0m A running file number will be added to the filename.\n"
 		read -ei "$FILENAME" FNAME
 		if [[ -n "$FNAME" ]]; then
 			FILENAME=$FNAME
@@ -585,29 +608,7 @@ if [[ ! -f febex.db ]]; then
 
 	menu_headline "Welcome to the Easy DAQ control interface"
 
-# 	echo "There seems to be no configuration file, yet."
-# 	echo "Do you want to create a default configuration file?"
-# 	echo
-# 	
-# 	menu "Yes" "No"
-# 	REPLY=$?
-# 
-# #	select SEL in "${OPTS[@]}"; do
-# 
-# 		case "$REPLY" in
-# 
-# 			1)
- 				create_default_config
-# #				break
-# 				;;
-# 
-# 			2)
-# #				break
-# 				;;
-# 
-# 		esac
-# 
-# #	done
+	create_default_config
 fi
 
 
@@ -662,7 +663,7 @@ while true; do
 			;;
 
 		4)
-			exit
+			menu_shutdown
 			;;
 
 		esac

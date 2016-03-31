@@ -8,6 +8,30 @@ fi
 HOSTNAME="$1"
 SESSION="daq_${USER}_${HOSTNAME}"
 
+while [[ $(tput cols) -lt "120" ]]; do
+	clear
+	echo
+	echo -e "\e[1;7mWarning\e[0;7m Your terminal has \e[1m$(tput cols)\e[0;7m columns.\e[0m"
+	echo -e "It is recommented to run this program in a \e[1mmaximized\e[0m terminal\nwith at least 120 columns."
+	echo "Please resize your terminal if possible."
+	echo
+	
+	source scripts/menu.sh
+	menu "Retry" "Continue with current size" "Exit"
+
+	case "$?" in
+		1)
+			continue
+			;;
+		2)
+			break
+			;;
+		3)
+			exit
+			;;
+	esac
+done
+
 # Check if TMUX is already running and has session
 if $(tmux has -t $SESSION); then
 	tmux -2 attach -t $SESSION
@@ -15,7 +39,6 @@ if $(tmux has -t $SESSION); then
 fi
 
 # Start and setup new session
-
 WD=$(echo $PWD | sed -e "s#$HOME##g" | sed -e "s#^/##g")
 
 scripts/install.sh $HOSTNAME || exit $?
