@@ -1,16 +1,15 @@
 #!/bin/bash
 
-function menu {
-	POS=0
-	
-	# Hide cursor
-	echo -en "\e[?25l"
-
-	while true; do
+function rebuild_menu {
 		TWIDTH=$(tput cols)
 
+		if [[ "$FIRSTRUN" -eq "0" ]]; then
+			# Restore cursor position
+			echo -en "\e[${#MENUOPTS[@]}F"
+		fi
+
 		IDX=0
-		for I in "$@"; do
+		for I in "${MENUOPTS[@]}"; do
 			if [[ "$IDX" -eq "$POS" ]]; then
 				M1="\e[7m"
 			else
@@ -19,12 +18,31 @@ function menu {
 	
 			printf "${M1}%-${TWIDTH}s\e[0m\n" " $(($IDX + 1))) ${I:0:$(( $TWIDTH - 10 ))}"
 	
-#			if [[ "$IDX" -lt "$#" ]]; then
-#				echo -en "\n"
-#			fi
-	
 			IDX=$(( $IDX + 1 ))
 		done
+
+		FIRSTRUN="0"
+}
+
+function menu {
+	POS=0
+
+	# Hide cursor
+	echo -en "\e[?25l"
+
+	MENUOPTS=("$@")
+	FIRSTRUN="1"
+
+	if [[ "$MENU_RETURN_ON_RESIZE" -eq "1" ]]; then
+		trap "return 0" SIGWINCH
+	elif [[ "$MENU_NO_TRAP" -ne "1" ]]; then
+		trap rebuild_menu SIGWINCH
+	fi
+	MENU_NO_TRAP=0
+	MENU_RETURN_ON_RESIZE=0
+
+	while true; do
+		rebuild_menu
 	
 		STATE=0
 		while true; do
@@ -72,9 +90,5 @@ function menu {
 					;;
 			esac
 		done
-		
-		# Restore cursor position
-		echo -en "\e[${#}F"
-	
 	done
 }

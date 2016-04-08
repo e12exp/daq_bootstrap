@@ -15,12 +15,13 @@ while [[ $(tput cols) -lt "120" ]]; do
 	echo -e "It is recommented to run this program in a \e[1mmaximized\e[0m terminal\nwith at least 120 columns."
 	echo "Please resize your terminal if possible."
 	echo
-	
+
 	source scripts/menu.sh
+	MENU_RETURN_ON_RESIZE=1
 	menu "Retry" "Continue with current size" "Exit"
 
 	case "$?" in
-		1)
+		[0-1])
 			continue
 			;;
 		2)

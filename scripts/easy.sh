@@ -236,13 +236,13 @@ function menu_triggers
 		case "$REPLY" in
 
 		1)
-			THR="cfd_threshold_low"
+			THR="discr_threshold_timing"
 			;;
 		2)
-			THR="cfd_threshold_high"
+			THR="discr_threshold_gamma"
 			;;
 		3)
-			THR="trigger_proton_threshold"
+			THR="discr_threshold_proton"
 			;;		
 
 		*)
@@ -289,9 +289,9 @@ function menu_opmode {
 			logdo ./setpar febex.db set *.*.*.trigger_gamma_dst 0
 			logdo ./setpar febex.db set *.*.*.trigger_timing_src 0x30
 			logdo ./setpar febex.db set *.*.*.trigger_enable_validation 0
-			logdo ./setpar febex.db set *.*.*.trigger_enable_walk_correction 0
+			logdo ./setpar febex.db set *.*.*.discr_enable_walk_correction 0
 			logdo ./setpar febex.db set *.*.*.trigger_timing_delay 0
-			logdo ./setpar febex.db set *.*.*.cfd_delay 20
+			logdo ./setpar febex.db set *.*.*.signal_delay 20
 			logdo ./setpar febex.db set *.*.qpid_delay 10
 			logdo ./setpar febex.db set *.*.num_events_readout 255
 		
@@ -304,9 +304,9 @@ function menu_opmode {
 			logdo ./setpar febex.db set *.*.*.trigger_gamma_dst 0x40
 			logdo ./setpar febex.db set *.*.*.trigger_timing_src 0x30
 			logdo ./setpar febex.db set *.*.*.trigger_enable_validation 0
-			logdo ./setpar febex.db set *.*.*.trigger_enable_walk_correction 0
+			logdo ./setpar febex.db set *.*.*.discr_enable_walk_correction 0
 			logdo ./setpar febex.db set *.*.*.trigger_timing_delay 0
-			logdo ./setpar febex.db set *.*.*.cfd_delay 20
+			logdo ./setpar febex.db set *.*.*.signal_delay 20
 			logdo ./setpar febex.db set *.*.qpid_delay 10
 			logdo ./setpar febex.db set *.*.num_events_readout 255
 
@@ -320,11 +320,11 @@ function menu_opmode {
 			logdo ./setpar febex.db set *.*.*.trigger_timing_src 0x80
 			logdo ./setpar febex.db set *.*.*.trigger_validation_src 0x30
 			logdo ./setpar febex.db set *.*.*.trigger_enable_validation 1
-			logdo ./setpar febex.db set *.*.*.trigger_enable_walk_correction 1
+			logdo ./setpar febex.db set *.*.*.discr_enable_walk_correction 1
 			logdo ./setpar febex.db set *.*.*.trigger_timing_delay 0
 			logdo ./setpar febex.db set *.*.*.trigger_validation_delay 80
 			logdo ./setpar febex.db set *.*.*.trigger_validation_gate_length 120
-			logdo ./setpar febex.db set *.*.*.cfd_delay 60
+			logdo ./setpar febex.db set *.*.*.signal_delay 60
 			logdo ./setpar febex.db set *.*.qpid_delay 10
 			logdo ./setpar febex.db set *.*.num_events_readout 199
 
@@ -338,11 +338,11 @@ function menu_opmode {
 			logdo ./setpar febex.db set *.*.*.trigger_timing_src 0x80
 			logdo ./setpar febex.db set *.*.*.trigger_validation_src 0x100
 			logdo ./setpar febex.db set *.*.*.trigger_enable_validation 1
-			logdo ./setpar febex.db set *.*.*.trigger_enable_walk_correction 1
+			logdo ./setpar febex.db set *.*.*.discr_enable_walk_correction 1
 			logdo ./setpar febex.db set *.*.*.trigger_timing_delay 0
 			logdo ./setpar febex.db set *.*.*.trigger_validation_delay 80
 			logdo ./setpar febex.db set *.*.*.trigger_validation_gate_length 120
-			logdo ./setpar febex.db set *.*.*.cfd_delay 60
+			logdo ./setpar febex.db set *.*.*.signal_delay 60
 			logdo ./setpar febex.db set *.*.qpid_delay 10
 			logdo ./setpar febex.db set *.*.num_events_readout 199
 
@@ -612,8 +612,7 @@ if [[ ! -f febex.db ]]; then
 fi
 
 
-while true; do
-
+function main_menu {
 	clear
 
 	menu_headline "Main Menu"
@@ -669,11 +668,11 @@ while true; do
 		esac
 
 	tmux select-pane -t 1
-#
-#	break
-#
-#	done
+}
 
+
+while true; do
+	main_menu
 done
 
 
