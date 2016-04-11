@@ -1,5 +1,12 @@
 #!/bin/bash
 
+##############################################
+# DUCK - DAQ User-friendly Control Kit
+#
+# Max Winkel <max.winkel@ph.tum.de>
+# 2016, Apr 11
+##############################################
+
 if [[ "$#" -lt "1" ]]; then
 	echo "Usage: $0 hostname" >&2
 	exit -1

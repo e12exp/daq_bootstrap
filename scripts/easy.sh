@@ -1,5 +1,12 @@
 #!/bin/bash
 
+##############################################
+# DUCK - DAQ User-friendly Control Kit
+#
+# Max Winkel <max.winkel@ph.tum.de>
+# 2016, Apr 11
+##############################################
+
 source ../scripts/menu.sh
 
 if [ "$#" -lt "1" ]; then
