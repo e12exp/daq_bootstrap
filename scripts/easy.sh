@@ -227,7 +227,7 @@ function menu_triggers
 	echo -e "\e[1mHint:\e[0m Usually, you want to set the \e[1mGAMMA\e[0m threshold"
 	echo
 
-	menu "Timing ('Low')" "Gamma ('High')" "Proton" "Never mind, get me back to the main menu!"
+  menu "Gamma ('High')" "Timing ('Low')" "Proton" "Never mind, get me back to the main menu!"
 	REPLY=$?
 
 	THR=""
@@ -236,10 +236,10 @@ function menu_triggers
 		case "$REPLY" in
 
 		1)
-			THR="discr_threshold_timing"
+			THR="discr_threshold_gamma"
 			;;
 		2)
-			THR="discr_threshold_gamma"
+			THR="discr_threshold_timing"
 			;;
 		3)
 			THR="discr_threshold_proton"
@@ -373,7 +373,7 @@ function menu_parameters {
 
 	menu_headline "Parameters"
 
-  OPTS=("Set Operation Mode" "Set Trigger Thresholds" "Expert: Start ./setpar to manually set parameters")
+  OPTS=("Set Trigger Thresholds" "Set Operation Mode" "Expert: Start ./setpar to manually set parameters")
 
 	if [ -f .febex.db.backup ]; then
     OPTS+=("Recover last febex.db")
@@ -392,11 +392,11 @@ function menu_parameters {
 		case "$REPLY" in
 
 		1)
-			menu_opmode
+			menu_triggers
 			;;
 
 		2)
-			menu_triggers
+			menu_opmode
 			;;
 
 		3)
