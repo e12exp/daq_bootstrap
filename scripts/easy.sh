@@ -250,9 +250,16 @@ function menu_triggers
 			;;
 		esac
 
+    echo
+    echo "Aye!"
+    # Print current threshold(s)
+    ../scripts/printthr.sh $THR
+    THRVAL=$(cat .thr.tmp)
+    rm -f .thr.tmp
+
 		echo
-		echo -e "Aye! Please give me the desired value for the \e[1m$THR\e[0m threshold [0 - 4095, empty = cancel]:"
-		read THRVAL
+		echo -e "Please give me the desired value for the \e[1m$THR\e[0m threshold [0 - 4095, empty = cancel]:"
+		read -ei "$THRVAL" THRVAL
 
 		if [ -z "$THRVAL" ]; then
 			LASTMSG="Abort, abort, abort!"
@@ -366,17 +373,19 @@ function menu_parameters {
 
 	menu_headline "Parameters"
 
-	menu "Set Operation Mode" "Set Trigger Thresholds" "Expert: Start ./setpar to manually set parameters" "Return"
-	REPLY=$?
+  OPTS=("Set Operation Mode" "Set Trigger Thresholds" "Expert: Start ./setpar to manually set parameters")
 
 	if [ -f .febex.db.backup ]; then
-		OPTS+=("Recover last febex.db")
+    OPTS+=("Recover last febex.db")
 		RECOVER=true
 	else
 		RECOVER=false
 	fi
 
-	OPTS+=("Return")
+  OPTS+=("Return")
+
+  menu "${OPTS[@]}"
+	REPLY=$?
 
 #	select SEL in "${OPTS[@]}"; do
 
