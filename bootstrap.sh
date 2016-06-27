@@ -13,6 +13,8 @@ if [[ "$#" -lt "1" ]]; then
 fi
 
 HOSTNAME="$1"
+
+
 SESSION="daq_${USER}_${HOSTNAME}"
 
 while [[ $(tput cols) -lt "120" ]]; do
@@ -45,6 +47,15 @@ if $(tmux has -t $SESSION); then
 	tmux -2 attach -t $SESSION
 	exit
 fi
+
+echo "trying to connect to host"
+
+if ! ssh -n ${HOSTNAME} /bin/true
+then
+    echo "host is not responding, exiting"
+    exit -1
+fi
+
 
 # Start and setup new session
 WD=$(echo $PWD | sed -e "s#$HOME##g" | sed -e "s#^/##g")

@@ -9,7 +9,7 @@
 
 source ../scripts/menu.sh
 
-if [ "$#" -lt "1" ]; then
+if [[ "$#" -lt "1" ]]; then
 	echo "Usage: $0 hostname" >&2
 	exit -1
 fi
@@ -19,11 +19,19 @@ HOSTNAME="$1"
 LASTMSG=""
 LASTLOG=""
 
+RUNLOGF=""
+RUNDIR=""
+RUNNUMBER=""
+
 function log {
 	TS=$(date)
 	printf "[%s] %s\n" "$TS" "$*" >> easy.log
 
-	if [ -n "$LASTLOG" ]; then
+	if [[ -n "$RUNLOGF" ]]; then
+	  printf "[%s] %s\n" "$TS" "$*" >> $RUNLOGF
+	fi
+
+	if [[ -n "$LASTLOG" ]]; then
 		LASTLOG="$LASTLOG\n"
 	fi
 	LASTLOG="${LASTLOG}${*}"
@@ -144,16 +152,16 @@ function shutdown {
 	tmux send-keys "quit" C-m
 	tmux send-keys "resl" C-m
 	sleep 5
-	tmux send-keys "exit" C-m
-	tmux send-keys "exit" C-m
-
-	tmux select-pane -t 1
-	tmux send-keys "exit" C-m
-	tmux send-keys "exit" C-m
-
-	tmux select-pane -t 1
-	tmux send-keys C-c C-c C-c
-	tmux send-keys "exit" C-m
+#	tmux send-keys "exit" C-m
+#	tmux send-keys "exit" C-m
+#
+#	tmux select-pane -t 1
+#	tmux send-keys "exit" C-m
+#	tmux send-keys "exit" C-m
+#
+#	tmux select-pane -t 1
+#	tmux send-keys C-c C-c C-c
+#	tmux send-keys "exit" C-m
 
 	tmux kill-session
 	exit	
@@ -305,8 +313,8 @@ function menu_opmode {
 			logdo ./setpar febex.db set *.*.*.trigger_enable_validation 0
 			logdo ./setpar febex.db set *.*.*.discr_enable_walk_correction 0
 			logdo ./setpar febex.db set *.*.*.trigger_timing_delay 0
-			logdo ./setpar febex.db set *.*.*.signal_delay 20
-			logdo ./setpar febex.db set *.*.qpid_delay 10
+			logdo ./setpar febex.db set *.*.*.signal_delay 110
+			logdo ./setpar febex.db set *.*.qpid_delay 100
 			logdo ./setpar febex.db set *.*.num_events_readout 255
 		
 			LASTMSG="Switched to single event mode without internal triggers"
@@ -320,8 +328,8 @@ function menu_opmode {
 			logdo ./setpar febex.db set *.*.*.trigger_enable_validation 0
 			logdo ./setpar febex.db set *.*.*.discr_enable_walk_correction 0
 			logdo ./setpar febex.db set *.*.*.trigger_timing_delay 0
-			logdo ./setpar febex.db set *.*.*.signal_delay 20
-			logdo ./setpar febex.db set *.*.qpid_delay 10
+			logdo ./setpar febex.db set *.*.*.signal_delay 110
+			logdo ./setpar febex.db set *.*.qpid_delay 100
 			logdo ./setpar febex.db set *.*.num_events_readout 255
 
 			LASTMSG="Switched to single event mode with internal trigger requests (gamma trigger)"
@@ -338,8 +346,8 @@ function menu_opmode {
 			logdo ./setpar febex.db set *.*.*.trigger_timing_delay 0
 			logdo ./setpar febex.db set *.*.*.trigger_validation_delay 80
 			logdo ./setpar febex.db set *.*.*.trigger_validation_gate_length 120
-			logdo ./setpar febex.db set *.*.*.signal_delay 60
-			logdo ./setpar febex.db set *.*.qpid_delay 10
+			logdo ./setpar febex.db set *.*.*.signal_delay 150
+			logdo ./setpar febex.db set *.*.qpid_delay 100
 			logdo ./setpar febex.db set *.*.num_events_readout 199
 
 			LASTMSG="Switched to single event mode with external + internal trigger coincidence (gamma (trigger request) + timing thresholds)"
@@ -416,8 +424,8 @@ function menu_parameters {
 			logdo ./setpar febex.db
 			./setpar febex.db list > ._setpar_after
 			log "# Start of diff between old and new config..."
-			DIFF=$(diff -u0 ._setpar_before ._setpar_after)
-			if [ -z "$DIFF" ]; then
+			DIFF=$(diff -U 0 ._setpar_before ._setpar_after)
+			if [[ -z "$DIFF" ]]; then
 				log "# No changes"
 				LASTMSG="No changes were made. Good boy!"
 				rm ._febex.db.backup
@@ -538,6 +546,145 @@ function create_default_config {
 	
 }
 
+function start_run {
+  clear
+
+  if [[ -f ../.run/runnumber ]]; then
+    RUNNUMBER=$(cat ../.run/runnumber)
+  else
+    RUNNUMBER=1
+  fi 
+
+  NRF=$(printf "%03d" "$RUNNUMBER")
+
+  if [[ -f ../.run/rundescription ]]; then
+    DESCR=$(cat ../.run/rundescription)
+  else
+    DESCR=""
+  fi
+
+  menu_headline "Start run"
+
+#  while true; do
+    printf "Time:       \e[1m%s\e[0m\n" "$(date '+%Y-%m-%d %H:%M')"
+    printf "Run number: \e[1m%03d\e[0m\n" "$RUNNUMBER"
+
+    echo
+    echo "Enter short description (Beam energy, target, detector setup, ...):"
+    read -e -i "$DESCR" DESCR
+
+    if [[ -z "$DESCR" ]]; then
+      return
+    fi
+
+    RUNTS=$(date '+%s')
+    RUNDIR=$(printf "%03d_%s" "$RUNNUMBER" "$(date -d @$RUNTS '+%Y-%m-%d_%H-%M-%S')")
+
+    mkdir -p ../data/$RUNDIR
+    RUNLOGF=../data/$RUNDIR/log.txt
+    cp febex.db ../data/$RUNDIR/febex.db
+    ./setpar febex.db list > ../data/$RUNDIR/febex_db.txt
+
+    log "# Run $NRF started"
+    log "# > $DESCR"
+
+    printf "\"START\";\"%03d\";\"%s\";\"%d\";\"%s\"\n" "$RUNNUMBER" "$(date -d @$RUNTS '+%Y-%m-%d %H:%M:%S')" "$RUNTS" "$DESCR" >> ../data/runlog.csv
+
+    open_file "data/$RUNDIR/data_.lmd"
+
+    LASTMSG="Run \e[1m$RUNDIR\e[0m started"
+
+    echo $((RUNNUMBER + 1)) > ../.run/runnumber
+    echo "$DESCR" > ../.run/rundescription
+
+#    menu "Return"
+#  done
+}
+
+function stop_run {
+  close_file
+
+  STOPTS=$(date '+%s')
+  STOPTSH="$(date -d @$STOPTS '+%Y-%m-%d %H:%M:%S')"
+  NRF=$(printf "%03d" "$RUNNUMBER")
+
+  log "# Run $NRF stopped"
+  printf "\"STOP\";\"%03d\";\"%s\";\"%d\";\"\"\n" "$RUNNUMBER" "$STOPTSH" "$STOPTS" >> ../data/runlog.csv
+
+  RUNDIR=""
+  RUNNUMBER=""
+  RUNLOGF=""
+
+  LASTMSG="Run \e[1m$NRF\e[0m stopped"
+}
+
+function menu_run {
+  clear
+
+  menu_headline "Run Management"
+
+  check_status "fo" "/ucesb/empty/empty"
+  RUN_ACTIVE=$?
+
+  if [[ "$RUN_ACTIVE" -eq "1" && -n "$RUNDIR" ]]; then
+    
+    menu "Stop Run $RUNDIR" "Return"
+    REPLY="$?"
+
+    case "$REPLY" in
+      1)
+	stop_run
+	;;
+      2)
+	return
+	;;
+    esac
+
+  elif [[ "$RUN_ACTIVE" -eq "1" ]]; then
+
+    echo "A file is open, but no run seems to be started. Please close the current file to proceed."
+    menu "Return"
+
+    return
+
+  else
+    
+    menu "Start Run" "Return"
+    REPLY=$?
+
+    case "$REPLY" in
+      1)
+	start_run
+	;;
+      2)
+	return
+	;;
+    esac
+  fi
+
+}
+
+function open_file {
+		FILENAME=$1
+		echo "$FILENAME" > ../.run/filename
+		PORT=$(cat ../.run/eb.${HOSTNAME}.port)
+	
+		tmux select-pane -t 4
+		tmux send-keys "scripts/fo.sh $PORT $HOSTNAME" C-m
+
+		log "# Opened file $FILENAME"
+		LASTMSG="File output started to \e[1m${FILENAME}\e[0m"
+}
+
+function close_file {
+		log "# Closing output file"
+
+		tmux select-pane -t 4
+		tmux send-keys C-c
+
+		LASTMSG="Output file closed"
+}
+
 function menu_file {
 	clear
 
@@ -570,12 +717,8 @@ function menu_file {
 			esac	
 #		done
 
-		log "# Closing output file"
+		close_file
 
-		tmux select-pane -t 4
-		tmux send-keys C-c
-
-		LASTMSG="Output file closed"
 	else
 		# No file is currently open
 		echo -e "\e[7mFile closed\e[0m"
@@ -601,15 +744,8 @@ function menu_file {
 		if [[ -n "$FNAME" ]]; then
 			FILENAME=$FNAME
 		fi
-		echo "$FILENAME" > ../.run/filename
-
-		PORT=$(cat ../.run/eb.${HOSTNAME}.port)
-	
-		tmux select-pane -t 4
-		tmux send-keys "scripts/fo.sh $PORT $HOSTNAME" C-m
-
-		log "# Opened file $FILENAME"
-		LASTMSG="File output started to \e[1m${FILENAME}\e[0m"
+		
+		open_file "$FILENAME"
 	fi	
 }
 
@@ -657,7 +793,7 @@ function main_menu {
 	LASTLOG=""
 
 #	OPTS=("MBS: Start/Stop Acquisition, ...", "Parameters", "Open/Close file", "Quit")
-	menu "MBS: Start/Stop Acquisition" "Parameters" "Open/Close file" "Quit"
+	menu "MBS: Start/Stop Acquisition" "Parameters" "Run Management" "Open/Close file" "Quit"
 
 	REPLY=$?
 
@@ -674,10 +810,14 @@ function main_menu {
 			;;
 
 		3)
+		  menu_run
+		  ;;
+
+		4)
 			menu_file
 			;;
 
-		4)
+		5)
 			menu_shutdown
 			;;
 
