@@ -93,8 +93,6 @@ tmux split-window -v
 tmux select-pane -t 4
 tmux send-keys "# Reserved for ucesb file output" C-m
 
-tmux select-pane -t 0
-
 tmux select-pane -t 1
 # tmux send-keys "ssh $HOSTNAME" C-m
 # tmux send-keys "cd $WD/mbs" C-m
