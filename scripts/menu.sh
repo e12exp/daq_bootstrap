@@ -53,7 +53,7 @@ function menu {
 	
 		STATE=0
 		while true; do
-			read -s -N 1 CHAR
+			read -s -n 1 CHAR
 
 			if [[ "$CHAR" =~ [1-9] && "$CHAR" -le "$#" ]]; then
 				echo -en "\e[?25h"
