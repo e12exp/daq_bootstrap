@@ -193,7 +193,7 @@ function menu_daq {
 	
 	menu_headline "MBS (Data Acquistion)"
 
-	menu "Start Acquisition" "Stop Acquistion" "Restart" "Return"
+	menu "Restart" "Start Acquisition" "Stop Acquistion" "Return"
 	REPLY=$?
 	
 #	select SEL in "${OPTS[@]}"; do
@@ -202,24 +202,25 @@ function menu_daq {
 		case "$REPLY" in
 
 		1)
+			LASTMSG="Sent '@r' to MBS"
+			tmux send-keys "@r" C-m
+			log "mbs> @r"
+			check_ucesb
+			;;
+
+		2)
 			LASTMSG="Sent 'sta ac' to MBS"
 			tmux send-keys "sta ac" C-m
 			log "mbs> sta ac"
 			check_ucesb
 			;;
 
-		2)
+		3)
 			LASTMSG="Sent 'sto ac' to MBS"
 			tmux send-keys "sto ac" C-m
 			log "mbs> sto ac"
 			;;
 
-		3)
-			LASTMSG="Sent '@r' to MBS"
-			tmux send-keys "@r" C-m
-			log "mbs> @r"
-			check_ucesb
-			;;
 
 		*)
 			;;
@@ -298,7 +299,7 @@ function menu_opmode {
 
 	menu_headline "Select operation mode"
 
-	menu "Single Event - External trigger only" "Single Event - Self trigger enabled" "Single Event - External + internal coincidence" "Multi Event - Free running" "Back to Main Menu" #"Ouh, actually, I don't think it was a good idea comming here... Could you bring me back to the main menu?"
+	menu "Single Event - External trigger only" "Single Event - Self trigger enabled" "Single Event - External + internal coincidence" "Multi Event - Free running" "Free running single event trace mode" "Back to Main Menu" #"Ouh, actually, I don't think it was a good idea comming here... Could you bring me back to the main menu?"
 	REPLY=$?
 
 #	select SEL in "${OPTS[@]}"; do
@@ -316,7 +317,8 @@ function menu_opmode {
 			logdo ./setpar febex.db set *.*.*.signal_delay 110
 			logdo ./setpar febex.db set *.*.qpid_delay 100
 			logdo ./setpar febex.db set *.*.num_events_readout 255
-		
+			logdo ./setpar febex.db set *.*.*.opmode_enable_trace 0
+			
 			LASTMSG="Switched to single event mode without internal triggers"
 			;;
 
@@ -331,7 +333,8 @@ function menu_opmode {
 			logdo ./setpar febex.db set *.*.*.signal_delay 110
 			logdo ./setpar febex.db set *.*.qpid_delay 100
 			logdo ./setpar febex.db set *.*.num_events_readout 255
-
+			logdo ./setpar febex.db set *.*.*.opmode_enable_trace 0
+			
 			LASTMSG="Switched to single event mode with internal trigger requests (gamma trigger)"
 			;;
 
@@ -349,7 +352,8 @@ function menu_opmode {
 			logdo ./setpar febex.db set *.*.*.signal_delay 150
 			logdo ./setpar febex.db set *.*.qpid_delay 100
 			logdo ./setpar febex.db set *.*.num_events_readout 199
-
+			logdo ./setpar febex.db set *.*.*.opmode_enable_trace 0
+			
 			LASTMSG="Switched to single event mode with external + internal trigger coincidence (gamma (trigger request) + timing thresholds)"
 			;;
 
@@ -367,9 +371,31 @@ function menu_opmode {
 			logdo ./setpar febex.db set *.*.*.signal_delay 60
 			logdo ./setpar febex.db set *.*.qpid_delay 10
 			logdo ./setpar febex.db set *.*.num_events_readout 199
+			logdo ./setpar febex.db set *.*.*.opmode_enable_trace 0
 
 			LASTMSG="Switched to free running multi event mode"
 			;;
+
+		5)
+			log "# Switching to free running single event trace mode"
+			logdo ./setpar febex.db set *.*.*.trigger_timing_dst 0
+			logdo ./setpar febex.db set *.*.*.trigger_gamma_dst 0
+			logdo ./setpar febex.db set *.*.*.trigger_timing_src 0x80
+			logdo ./setpar febex.db set *.*.*.trigger_validation_src 0x100
+			logdo ./setpar febex.db set *.*.*.trigger_enable_validation 1
+			logdo ./setpar febex.db set *.*.*.discr_enable_walk_correction 1
+			logdo ./setpar febex.db set *.*.*.trigger_timing_delay 0
+			logdo ./setpar febex.db set *.*.*.trigger_validation_delay 80
+			logdo ./setpar febex.db set *.*.*.trigger_validation_gate_length 120
+			logdo ./setpar febex.db set *.*.*.signal_delay 60
+			logdo ./setpar febex.db set *.*.qpid_delay 10
+			logdo ./setpar febex.db set *.*.num_events_readout 1
+			logdo ./setpar febex.db set *.*.*.opmode_enable_trace 1
+			logdo ./setpar febex.db set *.*.*.tracemode 0
+
+			LASTMSG="Switched to free running single event trace mode"
+			;;
+
 
 		*)
 			return
