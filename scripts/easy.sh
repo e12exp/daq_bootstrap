@@ -299,7 +299,7 @@ function menu_opmode {
 
 	menu_headline "Select operation mode"
 
-	menu "Single Event - External trigger only" "Single Event - Self trigger enabled" "Single Event - External + internal coincidence" "Multi Event - Free running" "Free running single event trace mode" "Back to Main Menu" #"Ouh, actually, I don't think it was a good idea comming here... Could you bring me back to the main menu?"
+	menu "Single Event - External trigger only" "Single Event - Self trigger enabled" "Single Event - External + internal coincidence" "Multi Event - Free running" "Free running single event trace mode (QPID probably not working!)" "Back to Main Menu" #"Ouh, actually, I don't think it was a good idea comming here... Could you bring me back to the main menu?"
 	REPLY=$?
 
 #	select SEL in "${OPTS[@]}"; do
@@ -387,7 +387,7 @@ function menu_opmode {
 			logdo ./setpar febex.db set *.*.*.trigger_timing_delay 0
 			logdo ./setpar febex.db set *.*.*.trigger_validation_delay 80
 			logdo ./setpar febex.db set *.*.*.trigger_validation_gate_length 120
-			logdo ./setpar febex.db set *.*.*.signal_delay 60
+			logdo ./setpar febex.db set *.*.*.signal_delay 250 # will break qpid
 			logdo ./setpar febex.db set *.*.qpid_delay 10
 			logdo ./setpar febex.db set *.*.num_events_readout 1
 			logdo ./setpar febex.db set *.*.*.opmode_enable_trace 1
