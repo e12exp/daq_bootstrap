@@ -1,6 +1,3 @@
-[submodule "mbs"]
-	path = mbs
-	url = gitolite@transfer.ktas.ph.tum.de:califa/mbs.git
 [submodule "ucesb"]
 	path = ucesb
 	url = gitolite@transfer.ktas.ph.tum.de:califa/ucesb.git
