@@ -4,3 +4,7 @@
 [submodule "febex_set_param"]
 	path = febex_set_param
 	url = gitolite@transfer.ktas.ph.tum.de:califa/febex_set_param.git
+[submodule "mbs"]
+	path = mbs
+	url = gitolite@transfer.ktas.ph.tum.de:califa/mbs
+	branch = linux_febex_1.3_wr
