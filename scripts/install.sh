@@ -19,8 +19,8 @@ WD=$(echo $PWD | sed -e "s#$HOME##g" | sed -e "s#^/##g")
 # Check if subdirectories are populated
 if [[ -z $(ls mbs/) || -z $(ls ucesb/) || -z $(ls febex_set_param/) ]]; then
 	# Not the case -> check out via git
-	git submodule init || exit $?
-	git submodule update || exit $?
+#	git submodule init || exit $?
+	git submodule update --init --recursive || exit $?
 fi
 
 # Check if we need to build setpar

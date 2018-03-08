@@ -10,7 +10,4 @@
 #resl
 $MBSBIN/m_remote reset -l
 setenv NOWR 1
-make
-#mbs
-
-python init.py && touch .running && exec $MBSBIN/m_dispatch
+make && python init.py && touch .running && exec $MBSBIN/m_dispatch
