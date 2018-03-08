@@ -9,8 +9,8 @@
 
 #resl
 $MBSBIN/m_remote reset -l
-bash init_chain.sh
 setenv NOWR 1
 make
 #mbs
-$MBSBIN/m_dispatch
+
+python init.py && touch .running && exec $MBSBIN/m_dispatch
