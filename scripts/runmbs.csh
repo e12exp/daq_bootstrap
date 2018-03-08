@@ -9,8 +9,7 @@
 
 #resl
 $MBSBIN/m_remote reset -l
-./ini_chane 0 1
-./ini_chane 0 1
+bash init_chain.sh
 setenv NOWR 1
 make
 #mbs

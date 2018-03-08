@@ -35,10 +35,13 @@ while true; do
 	# Return code 134 means: Socket in use => Try again with different port
 
 	if [[ "$RET" -ne "134" ]]; then
-		break
+	    echo "Seems like the eventbuilder died or did not start correctly. I will retry in 10 seconds."
+	    sleep 10
+	else
+	    echo "TCP port $PORT looks like it was in use, trying another one."
+	    PORT=$(($PORT+1))
 	fi
 
-	PORT=$(($PORT+1))
 
 	if [[ "$PORT" -ge "6012" ]]; then
 		echo "I tried 10 different ports now. I honestly don't think, that's the problem. Bailing out!"
