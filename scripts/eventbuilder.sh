@@ -23,7 +23,14 @@ set -m
 
 while true; do
 
-	echo "Trying to start ucesb eventbuilder on port $PORT"
+    # note: 6002 is the mbs server port, while $PORT is the ucesb port
+    clear
+    echo "Waiting for mbs stream server ..."
+    while ! nc $HOSTNAME 6002 -q0 </dev/null  &>/dev/null ; do
+	sleep 10
+    done;
+    
+	echo "mbs stream server is online. Trying to start ucesb eventbuilder on port $PORT"
 	ucesb/empty/empty --eventbuilder stream://$HOSTNAME --server=stream:$PORT &
 	PID=$!
 	echo "$PORT" > .run/eb.${HOSTNAME}.port
