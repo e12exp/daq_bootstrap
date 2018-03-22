@@ -80,7 +80,8 @@ tmux send-keys "cd $WD/mbs" C-m
 # tmux send-keys "./ini_chane 0 1" C-m
 # tmux send-keys "./ini_chane 0 1" C-m
 # tmux send-keys "mbs" C-m
-tmux send-keys "../scripts/runmbs.csh" C-m
+tmux send-keys "alias mbs ../scripts/runmbs.csh" C-m
+tmux send-keys "mbs" C-m
 tmux send-keys "@startup" C-m
 
 tmux select-pane -t 2
