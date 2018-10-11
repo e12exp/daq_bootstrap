@@ -377,6 +377,7 @@ function menu_opmode {
 			;;
 
 		5)
+		        DELAY=0
 			log "# Switching to free running single event trace mode"
 			logdo ./setpar febex.db set *.*.*.trigger_timing_dst 0
 			logdo ./setpar febex.db set *.*.*.trigger_gamma_dst 0
@@ -384,11 +385,11 @@ function menu_opmode {
 			logdo ./setpar febex.db set *.*.*.trigger_validation_src 0x100
 			logdo ./setpar febex.db set *.*.*.trigger_enable_validation 1
 			logdo ./setpar febex.db set *.*.*.discr_enable_walk_correction 1
-			logdo ./setpar febex.db set *.*.*.trigger_timing_delay 0
-			logdo ./setpar febex.db set *.*.*.trigger_validation_delay 80
-			logdo ./setpar febex.db set *.*.*.trigger_validation_gate_length 120
-			logdo ./setpar febex.db set *.*.*.signal_delay 250 # will break qpid
-			logdo ./setpar febex.db set *.*.qpid_delay 10
+			logdo ./setpar febex.db set *.*.*.trigger_timing_delay $(( 0 + $DELAY ))
+			logdo ./setpar febex.db set *.*.*.trigger_validation_delay $(( 80 ))
+			logdo ./setpar febex.db set *.*.*.trigger_validation_gate_length $(( 120 + $DELAY ))
+			logdo ./setpar febex.db set *.*.*.signal_delay $(( 60 + $DELAY ))
+			logdo ./setpar febex.db set *.*.qpid_delay $(( 10 + $DELAY ))
 			logdo ./setpar febex.db set *.*.num_events_readout 1
 			logdo ./setpar febex.db set *.*.*.opmode_enable_trace 1
 			logdo ./setpar febex.db set *.*.*.tracemode 0
