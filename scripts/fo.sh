@@ -13,7 +13,7 @@ FILENAME=$(cat .run/filename)
 HOSTNAME="$2"
 PORT="$1"
 
-ucesb/empty/empty stream://localhost:$PORT --output=size=1024M,newnum,wp,$FILENAME &
+ucesb/empty/empty trans://localhost:$PORT --output=size=1024M,newnum,wp,$FILENAME &
 PID=$!
 
 echo "$PID" > .run/fo.${HOSTNAME}.pid

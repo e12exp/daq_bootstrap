@@ -1,4 +1,4 @@
-#!/bin/tcsh
+#!/bin/bash
 
 ##############################################
 # DUCK - DAQ User-friendly Control Kit
@@ -9,5 +9,6 @@
 
 #resl
 $MBSBIN/m_remote reset -l
-setenv NOWR 1
+export LD_PRELOAD=$PWD/libreuse/libreuse.so
+#export NOWR 1
 make && python init.py && touch .running && exec $MBSBIN/m_dispatch

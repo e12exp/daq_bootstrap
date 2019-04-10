@@ -697,7 +697,7 @@ function open_file {
 		PORT=$(cat ../.run/eb.${HOSTNAME}.port)
 	
 		tmux select-pane -t 4
-		tmux send-keys "scripts/fo.sh $PORT $HOSTNAME" C-m
+		tmux send-keys "scripts/fo.sh $PORT localhost" C-m
 
 		log "# Opened file $FILENAME"
 		LASTMSG="File output started to \e[1m${FILENAME}\e[0m"

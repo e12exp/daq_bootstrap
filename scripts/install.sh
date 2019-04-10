@@ -22,7 +22,9 @@ WD=$(echo $PWD | sed -e "s#$HOME##g" | sed -e "s#^/##g")
 #if [[ -z $(ls mbs/) || -z $(ls ucesb/) || -z $(ls febex_set_param/) ]]; then
 	# Not the case -> check out via git
 #	git submodule init || exit $?
-	git submodule update --init --recursive || exit $?
+
+git submodule update --init --recursive || exit $?
+
 #fi
 
 # Check if we need to build setpar
@@ -34,6 +36,11 @@ WD=$(echo $PWD | sed -e "s#$HOME##g" | sed -e "s#^/##g")
 #	ln -s $WDABS/febex_set_param/setpar ./setpar
 #	cd ..
 #fi
+
+git -C mbs checkout linux_febex_1.3_wr 
+git -C ucesb checkout master 
+git -C mbs/util/febex_set_param checkout master
+
 
 # Check if we need to build ucesb empty
 if [[ ! -f ucesb/empty/empty ]]; then
