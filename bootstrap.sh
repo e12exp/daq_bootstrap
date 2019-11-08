@@ -85,8 +85,7 @@ tmux send-keys "mbs" C-m
 tmux send-keys "@startup" C-m
 
 tmux select-pane -t 2
-tmux send-keys "ssh $HOSTNAME" C-m
-tmux send-keys "sleep 5 && rate" C-m
+tmux send-keys "scripts/remote_rate.sh $HOSTNAME" C-m
 
 tmux select-pane -t 3
 tmux send-keys "# Reserved for ucesb event builder" C-m

@@ -8,7 +8,7 @@ fi
 
 while true ; 
 do
-    ssh -o ServerAliveInterval=1 -tt $1 <<<"rate -mbs ; exit"
+    ssh -o ServerAliveInterval=1 -o PasswordAuthentication=No -tt $1 <<<"rate ; exit"
     echo "restarting rate monitor in 10s"
     sleep 10
 done
