@@ -60,7 +60,7 @@ fi
 # Start and setup new session
 WD=$(echo $PWD | sed -e "s#$HOME##g" | sed -e "s#^/##g")
 
-scripts/install.sh $HOSTNAME || exit $?
+#scripts/install.sh $HOSTNAME || exit $?
 
 mkdir -p .run
 rm -f .run/filename
@@ -75,12 +75,13 @@ tmux split-window -h
 
 tmux select-pane -t 0
 tmux send-keys "ssh $HOSTNAME" C-m
-tmux send-keys "cd $WD/mbs" C-m
+sleep 5
+tmux send-keys "cd_current ; cd $HOSTNAME/daq_bootstrap/mbs" C-m
 # tmux send-keys "resl" C-m
 # tmux send-keys "./ini_chane 0 1" C-m
 # tmux send-keys "./ini_chane 0 1" C-m
 # tmux send-keys "mbs" C-m
-tmux send-keys "alias mbs ./mbs" C-m
+tmux send-keys "alias mbs ../scripts/runmbs.bash" C-m
 tmux send-keys "mbs" C-m
 tmux send-keys "@startup" C-m
 
