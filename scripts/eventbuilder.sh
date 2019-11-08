@@ -40,7 +40,6 @@ while true; do
 	# --eb-time-stitch=500
 	# was --serve=stream --server=trans:6000 
 	#
-	#gdb --args
 	ucesb/empty/empty --eventbuilder --eb-time-stitch=0 trans://$HOSTNAME --server=trans:$PORT_TRANS --server=stream:$PORT_STREAM &
 	PID=$!
 	echo "$PORT_TRANS" > .run/eb.${HOSTNAME}.port
