@@ -15,10 +15,11 @@ if [[ "$#" -lt "1" ]]; then
 	exit -1
 fi
 
-HOSTNAME="$1"
+HOST="$1"
+HOSTNO=$(echo $HOST | sed -E 's/x86l?-//g' )
 # UCESB will serve on the following ports.
-PORT_TRANS="8000"
-PORT_STREAM="8002"
+PORT_TRANS=$((  8000 + ${HOSTNO} ))
+PORT_STREAM=$(( 9000 + ${HOSTNO} ))
 
 mkdir -p .run
 
@@ -32,7 +33,7 @@ while true; do
         # we scan for stream server to get less ugly errors in mbs output
 	# then we use the stream server
 	echo "Waiting for mbs stream server..."
-	while ! nc $HOSTNAME 6002 -q0 </dev/null  &>/dev/null ; do
+	while ! nc $HOST 6000 -q0 </dev/null  &>/dev/null ; do
 		sleep 10
 	done;
 
@@ -40,10 +41,10 @@ while true; do
 	# --eb-time-stitch=500
 	# was --serve=stream --server=trans:6000 
 	#
-	ucesb/empty/empty --eventbuilder --eb-time-stitch=0 trans://$HOSTNAME --server=trans:$PORT_TRANS --server=stream:$PORT_STREAM &
+	ucesb/empty/empty --eventbuilder --eb-time-stitch=0 trans://$HOST --server=trans:$PORT_TRANS --server=stream:$PORT_STREAM &
 	PID=$!
-	echo "$PORT_TRANS" > .run/eb.${HOSTNAME}.port
-	echo "$PID" > .run/eb.${HOSTNAME}.pid
+	echo "$PORT_TRANS" > .run/eb.${HOST}.port
+	echo "$PID" > .run/eb.${HOST}.pid
 	fg
 	wait $PID
 	RET=$?
