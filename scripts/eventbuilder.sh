@@ -27,6 +27,8 @@ sleep 5
 
 set -m
 
+SLEEP=1
+
 while true; do
 
         clear
@@ -34,7 +36,7 @@ while true; do
 	# then we use the stream server
 	echo "Waiting for mbs stream server..."
 	while ! nc $HOST 6000 -q0 </dev/null  &>/dev/null ; do
-		sleep 10
+		sleep $SLEEP
 	done;
 
 	echo "MBS transport server online, trying to start UCESB event-builder, trans:$PORT_TRANS and stream:$PORT_STREAM."
@@ -51,13 +53,11 @@ while true; do
 
 	# Return code 134 means: Socket in use => Try again with different port
 	if [[ "$RET" -ne "134" ]]; then
-	    echo "Seems like the eventbuilder died or did not start correctly. I will retry in 10 seconds."
-	    sleep 10
+	    echo "Seems like the eventbuilder died or did not start correctly. I will retry in $SLEEP seconds."
+	    sleep $SLEEP
 	else
-#	    echo "TCP port $PORT looks like it was in use, trying another one."
-#	    PORT=$(($PORT+1))
-	    echo "TCP port $PORT_TRANS or $PORT_STREAM occupied, tidy up and I'll try again in 10 seconds."
-	    sleep 10
+	    echo "TCP port $PORT_TRANS or $PORT_STREAM occupied, tidy up and I'll try again in $SLEEP seconds."
+	    sleep $SLEEP
 	fi
 #	if [[ "$PORT" -ge "6012" ]]; then
 #		echo "I tried 10 different ports now. I honestly don't think, that's the problem. Bailing out!"
