@@ -1,0 +1,1 @@
+( ./setpar febex.db list | sed 's/ .*://' | sed 's/(.*)//' | head -n 100 | sed 's/^/set /'  ; echo save )  | sed -e 's/opmode_run.*/opmode_run 0/' | ./setpar febex.db.play

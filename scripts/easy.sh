@@ -14,7 +14,7 @@ if [[ "$#" -lt "1" ]]; then
 	exit -1
 fi
 
-HOSTNAME="$1"
+MBSHOST="$1"
 
 LASTMSG=""
 LASTLOG=""
@@ -48,8 +48,8 @@ function check_status {
 	PREFIX=$1
 	PROC=$2
 
-	if [[ -f ../.run/${PREFIX}.${HOSTNAME}.pid ]]; then
-		PID=$(cat ../.run/${PREFIX}.${HOSTNAME}.pid)
+	if [[ -f ../.run/${PREFIX}.${MBSHOST}.pid ]]; then
+		PID=$(cat ../.run/${PREFIX}.${MBSHOST}.pid)
 		if [[ -e /proc/$PID ]]; then
 			if [[ $(readlink /proc/$PID/exe) == *"$PROC"* ]]; then
 				RUNNING=1
@@ -66,7 +66,7 @@ function check_ucesb {
 	if [[ "$RUNNING" -eq "0" ]]; then
 		# ucesb not running => Start
 		tmux select-pane -t 3
-		tmux send-keys "scripts/eventbuilder.sh $HOSTNAME" C-m
+		tmux send-keys "scripts/eventbuilder.sh $MBSHOST" C-m
 	fi
 }
 
@@ -377,7 +377,7 @@ function menu_opmode {
 			;;
 
 		5)
-		        DELAY=0
+		        DELAY=120
 			log "# Switching to free running single event trace mode"
 			logdo ./setpar febex.db set *.*.*.trigger_timing_dst 0
 			logdo ./setpar febex.db set *.*.*.trigger_gamma_dst 0
@@ -694,10 +694,10 @@ function menu_run {
 function open_file {
 		FILENAME=$1
 		echo "$FILENAME" > ../.run/filename
-		PORT=$(cat ../.run/eb.${HOSTNAME}.port)
+		PORT=$(cat ../.run/eb.${MBSHOST}.port)
 	
 		tmux select-pane -t 4
-		tmux send-keys "scripts/fo.sh $PORT localhost" C-m
+		tmux send-keys "scripts/rfo.sh $PORT $MBSHOST" C-m
 
 		log "# Opened file $FILENAME"
 		LASTMSG="File output started to \e[1m${FILENAME}\e[0m"

@@ -14,7 +14,7 @@ fi
 
 export LC_ALL=C # shut up, perl
 
-HOSTNAME="$1"
+MBSHOST="$1"
 WDABS="$PWD"
 WD=$(echo $PWD | sed -e "s#$HOME##g" | sed -e "s#^/##g")
 

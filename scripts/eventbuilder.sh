@@ -27,7 +27,7 @@ sleep 5
 
 set -m
 
-SLEEP=1
+SLEEP=10
 
 while true; do
 

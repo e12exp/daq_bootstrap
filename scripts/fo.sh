@@ -9,14 +9,17 @@
 
 set -m
 
-FILENAME=$(cat .run/filename)
-HOSTNAME="$2"
+cd $(dirname $0)/..
+
+FILENAME=$HOME/califa/$(cat .run/filename)
+mkdir -p $(dirname "$FILENAME")
+MBSHOST="$2"
 PORT="$1"
 
-ucesb/empty/empty trans://localhost:$PORT --output=size=1024M,newnum,wp,$FILENAME &
+ucesb/empty/empty trans://lxir123:$PORT --output=size=1024M,newnum,wp,$FILENAME &
 PID=$!
 
-echo "$PID" > .run/fo.${HOSTNAME}.pid
+echo "$PID" > .run/fo.${MBSHOST}.pid
 
 fg
 

@@ -10,7 +10,7 @@ if [[ "$#" -lt "1" ]]; then
 	exit -1
 fi
 
-HOSTNAME="$1"
+MBSHOST="$1"
 # UCESB will serve on the following ports.
 PORT_TRANS="8000"
 PORT_STREAM="8002"
