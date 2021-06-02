@@ -20,6 +20,6 @@ ucesb/empty/empty trans://lxir123:$PORT --output=size=1024M,newnum,wp,$FILENAME 
 PID=$!
 
 echo "$PID" > .run/fo.${MBSHOST}.pid
-
+hostname -f > .run/fo.${MBSHOST}.host
 fg
 

@@ -48,12 +48,17 @@ function check_status {
 	PREFIX=$1
 	PROC=$2
 
+#	HOST=$(hostname -f)
+#	if test -f ../.run/${PREFIX}.${MBSHOST}.host
+#	then
+
 	if [[ -f ../.run/${PREFIX}.${MBSHOST}.pid ]]; then
 		PID=$(cat ../.run/${PREFIX}.${MBSHOST}.pid)
-		if [[ -e /proc/$PID ]]; then
-			if [[ $(readlink /proc/$PID/exe) == *"$PROC"* ]]; then
-				RUNNING=1
-			fi
+		HOST=$(cat ../.run/${PREFIX}.${MBSHOST}.host)
+                CMD=$(ssh -tt $HOST cat /proc/$PID/cmdline)
+		echo "command:$CMD"
+		if [[ $CMD  == *"$PROC"* ]]; then
+			RUNNING=1
 		fi
 	fi
 
@@ -61,7 +66,7 @@ function check_status {
 }
 
 function check_ucesb {
-	check_status "eb" "/ucesb/empty/empty"
+	check_status "eb" "ucesb/empty/empty"
 	RUNNING=$?
 	if [[ "$RUNNING" -eq "0" ]]; then
 		# ucesb not running => Start
@@ -650,7 +655,7 @@ function menu_run {
 
   menu_headline "Run Management"
 
-  check_status "fo" "/ucesb/empty/empty"
+  check_status "fo" "ucesb/empty/empty"
   RUN_ACTIVE=$?
 
   if [[ "$RUN_ACTIVE" -eq "1" && -n "$RUNDIR" ]]; then
@@ -676,7 +681,7 @@ function menu_run {
 
   else
     
-    menu "Start Run" "Return"
+    menu "Start Run"  "Return"
     REPLY=$?
 
     case "$REPLY" in
@@ -708,6 +713,13 @@ function close_file {
 
 		tmux select-pane -t 4
 		tmux send-keys C-c
+		sleep 5.0 
+		tmux send-keys C-c
+		sleep 0.1 
+		tmux send-keys C-c
+		sleep 0.1 
+		tmux send-keys C-c
+		sleep 0.1 
 
 		LASTMSG="Output file closed"
 }
@@ -717,7 +729,7 @@ function menu_file {
 
 	menu_headline "File Output"
 
-	check_status "fo" "/ucesb/empty/empty"
+	check_status "fo" "ucesb/empty/empty"
 	FILE_OPEN=$?
 
 	FILENAME=$(cat ../.run/filename 2>/dev/null)
