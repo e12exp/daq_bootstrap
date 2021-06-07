@@ -43,7 +43,7 @@ while true; do
 	# --eb-time-stitch=500
 	# was --serve=stream --server=trans:6000 
 	#
-	ucesb/empty/empty --eventbuilder=0xb00 --eb-time-stitch=0 stream://$HOST --server=size=100Mi,trans:$PORT_TRANS --server=size=100Mi,stream:$PORT_STREAM &
+	ucesb/empty/empty --eventbuilder=0xb00 --eb-time-stitch=0 stream://$HOST --server=size=100Mi,trans:$PORT_TRANS --server=size=100Mi,stream:$PORT_STREAM 2>&1 | scripts/rate-limit.py &
 #	/u/land/landexp/202103_s455/califa_ucesb/empty/empty --califa=0xb00,91,10.99.2.27 trans://$HOST --server=trans:$PORT_TRANS --server=stream:$PORT_STREAM &
 	PID=$!
 	echo "$PORT_TRANS" > .run/eb.${HOST}.port
