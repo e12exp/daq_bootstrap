@@ -43,7 +43,8 @@ while true; do
 	# --eb-time-stitch=500
 	# was --serve=stream --server=trans:6000 
 	#
-	ucesb/empty/empty --eventbuilder=0xb00 --eb-time-stitch=0 stream://$HOST --server=size=100Mi,trans:$PORT_TRANS --server=size=100Mi,stream:$PORT_STREAM 2>&1 | scripts/rate-limit.py &
+        . mbs/local_settings.sh # read ${WRTS_SUB_ID} from mbs configuration input
+        ucesb/empty/empty --colour=yes --eventbuilder=${WRTS_SUB_ID} --eb-time-stitch=0 stream://$HOST --server=size=100Mi,trans:$PORT_TRANS --server=size=100Mi,stream:$PORT_STREAM 2>&1 |  scripts/rate-limit.py &
 #	/u/land/landexp/202103_s455/califa_ucesb/empty/empty --califa=0xb00,91,10.99.2.27 trans://$HOST --server=trans:$PORT_TRANS --server=stream:$PORT_STREAM &
 	PID=$!
 	echo "$PORT_TRANS" > .run/eb.${HOST}.port
@@ -52,7 +53,6 @@ while true; do
 	wait $PID
 	RET=$?
 
-	# Return code 134 means: Socket in use => Try again with different port
 	if [[ "$RET" -ne "134" ]]; then
 	    echo "Seems like the eventbuilder died or did not start correctly. I will retry in $SLEEP seconds."
 	    sleep $SLEEP
