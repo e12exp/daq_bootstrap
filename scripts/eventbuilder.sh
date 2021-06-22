@@ -45,6 +45,8 @@ while true; do
 	#
         . mbs/local_settings.sh # read ${WRTS_SUB_ID} from mbs configuration input
         ucesb/empty/empty --colour=yes --eventbuilder=${WRTS_SUB_ID} --eb-time-stitch=0 stream://$HOST --server=size=100Mi,trans:$PORT_TRANS --server=size=100Mi,stream:$PORT_STREAM 2>&1 |  scripts/rate-limit.py &
+        # TODO: write output to file
+        
 #	/u/land/landexp/202103_s455/califa_ucesb/empty/empty --califa=0xb00,91,10.99.2.27 trans://$HOST --server=trans:$PORT_TRANS --server=stream:$PORT_STREAM &
 	PID=$!
 	echo "$PORT_TRANS" > .run/eb.${HOST}.port
