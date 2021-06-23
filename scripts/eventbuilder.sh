@@ -7,8 +7,6 @@
 # 2016, Apr 11
 ##############################################
 
-# HTT haxx: Don't look for open ports, this thing must run where intended.
-# -- okay, hated the port loop search anyhow. --pk
 
 if [[ "$#" -lt "1" ]]; then
 	echo "Usage: $0 hostname" >&2
@@ -20,6 +18,14 @@ HOSTNO=$(echo $HOST | sed -E 's/x86l?-//g' )
 # UCESB will serve on the following ports.
 PORT_TRANS=$((  8000 + $((HOSTNO*10)) ))
 PORT_STREAM=$(( 9000 + $((HOSTNO*10)) ))
+
+# as suggested by Hakan, keep OOM killer at bay
+
+ulimit -d 10000000   # 10 GB
+ulimit -v 10000000
+ulimit -m 10000000
+
+ulimit -a            # just to print 
 
 mkdir -p .run
 
