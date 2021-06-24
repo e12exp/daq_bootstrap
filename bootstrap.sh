@@ -15,7 +15,7 @@ fi
 HOSTNAME="$1"
 
 
-SESSION="daq_${USER}_${HOSTNAME}"
+SESSION="${HOSTNAME}_daq"
 
 while [[ $(tput cols) -lt "120" ]]; do
 	clear
@@ -50,12 +50,12 @@ fi
 
 echo "trying to connect to host"
 
-if ! ssh -n ${HOSTNAME} /bin/true
-then
-    echo "host is not responding, exiting"
-    exit -1
-fi
 
+while ! ssh -o ConnectTimeout=5 -n ${HOSTNAME} /bin/true
+do
+    echo "host is not responding, still trying (^C to quit)"
+    sleep 5
+done
 
 # Start and setup new session
 WD=$(echo $PWD | sed -e "s#$HOME##g" | sed -e "s#^/##g")
