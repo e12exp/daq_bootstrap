@@ -44,6 +44,7 @@ while 1:
             sys.stdout.write(l+nl)
         elif count==limit:
             sys.stdout.write("\n[RATE LIMIT]\n")
+            count+=1 # do not repeat rate limit msg
         else:
             break
     sys.stdout.flush()
