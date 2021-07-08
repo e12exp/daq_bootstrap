@@ -51,7 +51,8 @@ fi
 echo "trying to connect to host"
 
 
-while ! ssh -o ConnectTimeout=5 -n ${HOSTNAME} /bin/true
+while ! ssh -o ConnectTimeout=5 -o PasswordAuthentication=no \
+        -n ${HOSTNAME} /bin/true
 do
     echo "host is not responding, still trying (^C to quit)"
     sleep 5
