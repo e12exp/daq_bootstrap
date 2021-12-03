@@ -1,7 +1,7 @@
 [submodule "ucesb"]
 	path = ucesb
-	url = gitolite@transfer.ktas.ph.tum.de:califa/ucesb.git
+	url = git@github.com:e12exp/ucesb.git
 [submodule "mbs"]
 	path = mbs
-	url = gitolite@transfer.ktas.ph.tum.de:califa/mbs
-	branch = linux_febex_1.3_wr
+	url = git@github.com:e12exp/mbs.git
+	branch = master
