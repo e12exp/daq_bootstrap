@@ -7,13 +7,16 @@
 # 2016, Apr 11
 ##############################################
 
-if [[ "$#" -lt "1" ]]; then
-	echo "Usage: $0 hostname" >&2
+if [[ "$#" -lt "0" ]]; then
+	echo "Usage: $0 " >&2
 	exit -1
 fi
 
-HOSTNAME="$1"
+. config/local_settings.sh
 
+HOSTNAME="$MBSPC"
+
+test -z "$HOSTNAME" && echo "MBSPC not set in config/local_settings.sh"
 
 SESSION="${HOSTNAME}_daq"
 
