@@ -8,13 +8,14 @@
 ##############################################
 
 source ../scripts/menu.sh
+source ../scripts/functions.sh
 
-if [[ "$#" -lt "1" ]]; then
-	echo "Usage: $0 hostname" >&2
+if [[ "$#" -lt "0" ]]; then
+	echo "Usage: $0" >&2
 	exit -1
 fi
 
-MBSHOST="$1"
+MBSHOST="$MBSPC"
 
 LASTMSG=""
 LASTLOG=""
@@ -71,7 +72,7 @@ function check_ucesb {
 	if [[ "$RUNNING" -eq "0" ]]; then
 		# ucesb not running => Start
 		tmux select-pane -t 3
-		tmux send-keys "scripts/eventbuilder.sh $MBSHOST" C-m
+		tmux send-keys "scripts/eventbuilder.sh" C-m
 	fi
 }
 
@@ -198,222 +199,53 @@ function menu_daq {
 	
 	menu_headline "MBS (Data Acquistion)"
 
-	menu "Restart" "Start Acquisition" "Stop Acquistion" "Return"
+	menu "Soft (Re)start (@r)" "Restart mbs" "Power cycle crates" "Power cycle DAQ PC" "Return"
 	REPLY=$?
 	
-#	select SEL in "${OPTS[@]}"; do
+	case "$REPLY" in
+            
+	    1)
+		LASTMSG="Sent '@r' to MBS"
+                mbs_send @r
+		log "mbs> @r"
+		check_ucesb
+		;;
 
-		tmux select-pane -t 0
-		case "$REPLY" in
+	    2)
+		LASTMSG="Restarting MBS"
+                restart_mbs_pane
+                log "restarting mbs"
+                restart_mbs_pane 
+                mbs_send "@ss" 
+		check_ucesb
+		;;
+            
+	    3)
+		LASTMSG="Cycling crates, restarting Restarting MBS"
+                restart_mbs_pane
+                ../scripts/cycle_crate.sh --cycle --all
+                log "cycling crates, restarting mbs"
+                mbs_send "@ss" 
+		check_ucesb
+		;;
 
-		1)
-			LASTMSG="Sent '@r' to MBS"
-			tmux send-keys "@r" C-m
-			log "mbs> @r"
-			check_ucesb
-			;;
+	    4)
+		LASTMSG="Power cycling DAQ PC"
+                ../scripts/reboot.sh
+                restart_mbs_pane
+                ../scripts/cycle_crate.sh --cycle --all
+                sleep 5
+                mbs_send "@ss" 
+		check_ucesb
+		;;
 
-		2)
-			LASTMSG="Sent 'sta ac' to MBS"
-			tmux send-keys "sta ac" C-m
-			log "mbs> sta ac"
-			check_ucesb
-			;;
-
-		3)
-			LASTMSG="Sent 'sto ac' to MBS"
-			tmux send-keys "sto ac" C-m
-			log "mbs> sto ac"
-			;;
-
-
-		*)
-			;;
-
-		esac
-
-#		break
-
-#	done
+            
+	    *)
+		;;
+            
+	esac
 }
 
-
-function menu_triggers 
-{
-	clear
-
-	menu_headline "Trigger Thresholds"
-
-	echo "Which threshold do you want to set?"
-	echo -e "\e[1mHint:\e[0m Usually, you want to set the \e[1mGAMMA\e[0m threshold"
-	echo
-
-  menu "Gamma ('High')" "Timing ('Low')" "Proton" "Never mind, get me back to the main menu!"
-	REPLY=$?
-
-	THR=""
-#	select SEL in "${OPTS[@]}"; do
-
-		case "$REPLY" in
-
-		1)
-			THR="discr_threshold_gamma"
-			;;
-		2)
-			THR="discr_threshold_timing"
-			;;
-		3)
-			THR="discr_threshold_proton"
-			;;		
-
-		*)
-			return
-			;;
-		esac
-
-    echo
-    echo "Aye!"
-    # Print current threshold(s)
-    ../scripts/printthr.sh $THR
-    THRVAL=$(cat .thr.tmp)
-    rm -f .thr.tmp
-
-		echo
-		echo -e "Please give me the desired value for the \e[1m$THR\e[0m threshold [0 - 4095, empty = cancel]:"
-		read -ei "$THRVAL" THRVAL
-
-		if [ -z "$THRVAL" ]; then
-			LASTMSG="Abort, abort, abort!"
-			return
-		fi
-
-		if [ "$THRVAL" -gt "4095" ]; then
-			LASTMSG="Invalid value! Try again if sober..."
-			return
-		fi
-
-		logdo ./setpar febex.db set *.*.*.$THR $THRVAL
-		LASTMSG="Aye aye cap'n! $THR threshold set to $THRVAL. Please restart DAQ to apply the new thresholds."
-
-#		break
-#	done
-}
-
-function menu_opmode {
-	clear
-
-	menu_headline "Select operation mode"
-
-	menu "Single Event - External trigger only" "Single Event - Self trigger enabled" "Single Event - External + internal coincidence" "Multi Event - Free running" "Free running single event trace mode (QPID probably not working!)" "Back to Main Menu" #"Ouh, actually, I don't think it was a good idea comming here... Could you bring me back to the main menu?"
-	REPLY=$?
-
-#	select SEL in "${OPTS[@]}"; do
-
-		case "$REPLY" in
-
-		1)
-			log "# Switching to single event mode without internal triggers"	
-			logdo ./setpar febex.db set *.*.*.trigger_timing_dst 0
-			logdo ./setpar febex.db set *.*.*.trigger_gamma_dst 0
-			logdo ./setpar febex.db set *.*.*.trigger_timing_src 0x30
-			logdo ./setpar febex.db set *.*.*.trigger_enable_validation 0
-			logdo ./setpar febex.db set *.*.*.discr_enable_walk_correction 0
-			logdo ./setpar febex.db set *.*.*.trigger_timing_delay 0
-			logdo ./setpar febex.db set *.*.*.signal_delay 110
-			logdo ./setpar febex.db set *.*.qpid_delay 100
-			logdo ./setpar febex.db set *.*.num_events_readout 255
-			logdo ./setpar febex.db set *.*.*.opmode_enable_trace 0
-			
-			LASTMSG="Switched to single event mode without internal triggers"
-			;;
-
-		2)
-			log "# Switching to single event mode with internal trigger requests (gamma trigger)"
-			logdo ./setpar febex.db set *.*.*.trigger_timing_dst 0
-			logdo ./setpar febex.db set *.*.*.trigger_gamma_dst 0x40
-			logdo ./setpar febex.db set *.*.*.trigger_timing_src 0x30
-			logdo ./setpar febex.db set *.*.*.trigger_enable_validation 0
-			logdo ./setpar febex.db set *.*.*.discr_enable_walk_correction 0
-			logdo ./setpar febex.db set *.*.*.trigger_timing_delay 0
-			logdo ./setpar febex.db set *.*.*.signal_delay 110
-			logdo ./setpar febex.db set *.*.qpid_delay 100
-			logdo ./setpar febex.db set *.*.num_events_readout 255
-			logdo ./setpar febex.db set *.*.*.opmode_enable_trace 0
-			
-			LASTMSG="Switched to single event mode with internal trigger requests (gamma trigger)"
-			;;
-
-		3)
-			log "# Switching to single event mode with external + internal trigger coincidence (gamma (trigger request) + timing thresholds)"
-			logdo ./setpar febex.db set *.*.*.trigger_timing_dst 0
-			logdo ./setpar febex.db set *.*.*.trigger_gamma_dst 0x40
-			logdo ./setpar febex.db set *.*.*.trigger_timing_src 0x80
-			logdo ./setpar febex.db set *.*.*.trigger_validation_src 0x30
-			logdo ./setpar febex.db set *.*.*.trigger_enable_validation 1
-			logdo ./setpar febex.db set *.*.*.discr_enable_walk_correction 1
-			logdo ./setpar febex.db set *.*.*.trigger_timing_delay 0
-			logdo ./setpar febex.db set *.*.*.trigger_validation_delay 80
-			logdo ./setpar febex.db set *.*.*.trigger_validation_gate_length 120
-			logdo ./setpar febex.db set *.*.*.signal_delay 150
-			logdo ./setpar febex.db set *.*.qpid_delay 100
-			logdo ./setpar febex.db set *.*.num_events_readout 199
-			logdo ./setpar febex.db set *.*.*.opmode_enable_trace 0
-			
-			LASTMSG="Switched to single event mode with external + internal trigger coincidence (gamma (trigger request) + timing thresholds)"
-			;;
-
-		4)
-			log "# Switching to free running multi event mode"
-			logdo ./setpar febex.db set *.*.*.trigger_timing_dst 0
-			logdo ./setpar febex.db set *.*.*.trigger_gamma_dst 0
-			logdo ./setpar febex.db set *.*.*.trigger_timing_src 0x80
-			logdo ./setpar febex.db set *.*.*.trigger_validation_src 0x100
-			logdo ./setpar febex.db set *.*.*.trigger_enable_validation 1
-			logdo ./setpar febex.db set *.*.*.discr_enable_walk_correction 1
-			logdo ./setpar febex.db set *.*.*.trigger_timing_delay 0
-			logdo ./setpar febex.db set *.*.*.trigger_validation_delay 80
-			logdo ./setpar febex.db set *.*.*.trigger_validation_gate_length 120
-			logdo ./setpar febex.db set *.*.*.signal_delay 60
-			logdo ./setpar febex.db set *.*.qpid_delay 10
-			logdo ./setpar febex.db set *.*.num_events_readout 199
-			logdo ./setpar febex.db set *.*.*.opmode_enable_trace 0
-
-			LASTMSG="Switched to free running multi event mode"
-			;;
-
-		5)
-		        DELAY=120
-			log "# Switching to free running single event trace mode"
-			logdo ./setpar febex.db set *.*.*.trigger_timing_dst 0
-			logdo ./setpar febex.db set *.*.*.trigger_gamma_dst 0
-			logdo ./setpar febex.db set *.*.*.trigger_timing_src 0x80
-			logdo ./setpar febex.db set *.*.*.trigger_validation_src 0x100
-			logdo ./setpar febex.db set *.*.*.trigger_enable_validation 1
-			logdo ./setpar febex.db set *.*.*.discr_enable_walk_correction 1
-			logdo ./setpar febex.db set *.*.*.trigger_timing_delay $(( 0 + $DELAY ))
-			logdo ./setpar febex.db set *.*.*.trigger_validation_delay $(( 80 ))
-			logdo ./setpar febex.db set *.*.*.trigger_validation_gate_length $(( 120 + $DELAY ))
-			logdo ./setpar febex.db set *.*.*.signal_delay $(( 60 + $DELAY ))
-			logdo ./setpar febex.db set *.*.qpid_delay $(( 10 + $DELAY ))
-			logdo ./setpar febex.db set *.*.num_events_readout 1
-			logdo ./setpar febex.db set *.*.*.opmode_enable_trace 1
-			logdo ./setpar febex.db set *.*.*.tracemode 0
-
-			LASTMSG="Switched to free running single event trace mode"
-			;;
-
-
-		*)
-			return
-			;;
-
-		esac
-
-		LASTMSG="$LASTMSG\nRemember to restart the DAQ to apply the changes."
-
-#		break
-#	done
-}
 
 function menu_parameters {
 	clear
@@ -421,13 +253,6 @@ function menu_parameters {
 	menu_headline "Parameters"
 
   OPTS=("Set Trigger Thresholds" "Set Operation Mode" "Expert: Start ./setpar to manually set parameters")
-
-	if [ -f .febex.db.backup ]; then
-    OPTS+=("Recover last febex.db")
-		RECOVER=true
-	else
-		RECOVER=false
-	fi
 
   OPTS+=("Return")
 
@@ -864,6 +689,11 @@ function main_menu {
 
 	tmux select-pane -t 1
 }
+if "$1" != "--fast"
+then
+    echo "waiting for mbs"
+    mbs_send @s
+fi
 
 
 while true; do
