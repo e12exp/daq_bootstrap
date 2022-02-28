@@ -20,7 +20,7 @@ then
     INITARGS="" # if a user want to cycle stuff, let them do from the PC running tmux
     EXEC=""
 else # we are invoked by a subsequent call via ./mbs
-    INITARGS= "$@"
+    INITARGS="$@"
     EXEC=exec
 fi
 
