@@ -15,8 +15,16 @@ fi
 
 source config/local_settings.sh
 
-HOST="$MBSPC"
-HOSTNO=$(echo $HOST | sed -E 's/x86l?-//g' )
+HOSTNO=$(echo $MBSPC | sed -E 's/x86l?-//g' )
+
+if test -n "$EBSOURCE"
+then
+    IFS=":" read HOST SRCPORT <<<$EBSOURCE
+else
+    HOST="$MBSPC"
+    SRCPORT=6002
+fi
+echo "Will read data from $HOST:$SRCPORT"
 # UCESB will serve on the following ports.
 PORT_TRANS=$((  8000 + $((HOSTNO*10)) ))
 PORT_STREAM=$(( 9000 + $((HOSTNO*10)) ))
@@ -43,7 +51,7 @@ while true; do
         # we scan for stream server to get less ugly errors in mbs output
 	# then we use the stream server
 	echo "Waiting for mbs stream server..."
-	while ! nc -v $HOST 6000 -q1 </dev/null  >/dev/null ; do
+	while ! nc -v $HOST $SRCPORT -q1 </dev/null  >/dev/null ; do
 	    sleep $SLEEP
             echo .
 	done;
@@ -52,7 +60,7 @@ while true; do
 	# --eb-time-stitch=500
 	# was --serve=stream --server=trans:6000 
 	#
-        ucesb/empty/empty --colour=yes --eventbuilder=${WRTS_SUB_ID}  stream://$HOST --server=size=100Mi,trans:$PORT_TRANS --server=size=100Mi,stream:$PORT_STREAM 2>&1 |  scripts/rate-limit.py &
+        ucesb/empty/empty --colour=yes --eventbuilder=${WRTS_SUB_ID}  stream://$HOST:$SRCPORT --server=size=100Mi,trans:$PORT_TRANS --server=size=100Mi,stream:$PORT_STREAM 2>&1 |  scripts/rate-limit.py &
         # TODO: write output to file
         
 #	/u/land/landexp/202103_s455/califa_ucesb/empty/empty --califa=0xb00,91,10.99.2.27 trans://$HOST --server=trans:$PORT_TRANS --server=stream:$PORT_STREAM &

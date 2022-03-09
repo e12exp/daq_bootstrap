@@ -29,5 +29,6 @@ sleep 1
 $MBSBIN/m_remote reset -l
 export LD_PRELOAD=$PWD/libreuse/libreuse.so
 #export NOWR 1
+#ulimit -c unlimited # unfortunately does not affect m_read_meb
 make && make -sC ../config/ commit && python init.py ${INITARGS} && touch .running && $EXEC $MBSBIN/m_dispatch -dabc
 
