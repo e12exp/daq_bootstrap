@@ -60,7 +60,7 @@ while true; do
 	# --eb-time-stitch=500
 	# was --serve=stream --server=trans:6000 
 	#
-        ucesb/empty/empty --colour=yes --eventbuilder=${WRTS_SUB_ID}  stream://$HOST:$SRCPORT --server=size=100Mi,trans:$PORT_TRANS --server=size=100Mi,stream:$PORT_STREAM 2>&1 |  scripts/rate-limit.py &
+        ucesb/empty/empty --colour=yes --eventbuilder=${WRTS_SUB_ID}  stream://$HOST:$SRCPORT --server=size=100Mi,trans:$PORT_TRANS --server=size=100Mi,stream:$PORT_STREAM,flush=1 2>&1 |  scripts/rate-limit.py &
         # TODO: write output to file
         
 #	/u/land/landexp/202103_s455/califa_ucesb/empty/empty --califa=0xb00,91,10.99.2.27 trans://$HOST --server=trans:$PORT_TRANS --server=stream:$PORT_STREAM &
