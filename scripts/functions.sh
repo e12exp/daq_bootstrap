@@ -29,7 +29,7 @@ function mbs_send
     do
         sleep 1
     done
-    mbscmd x86l-76 -cmd "$@"
+    mbscmd $MBSPC -cmd "$@"
 }
 
 
