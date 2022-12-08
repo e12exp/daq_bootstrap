@@ -7,7 +7,7 @@ cd $(dirname $0)
 FOREVER=0
 test "$1" == "--forever" && FOREVER=1
 
-MBSPATH=$(echo $PWD | sed s@/u/land/@/land/usr/land/@ )
+MBSPATH=$(echo $PWD | sed s@/u/land/@/land/usr/land/@ | sed s@/lynx/Lynx@@ )
 
 LOOP=1
 while test -n "$LOOP"
