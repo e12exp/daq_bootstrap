@@ -1,7 +1,8 @@
 #!/bin/bash
 
 #runs mbs over ssh
-cd $(dirname $0)
+cd $(dirname $(readlink -f $0) )
+
 . functions.sh
 
 FOREVER=0
