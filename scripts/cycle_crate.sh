@@ -6,7 +6,9 @@ function set_crate()
 {
     STATE=$1
     CRATE=$2
-    ssh landgw01 ssh e12exp@${SLOWCONTROL} picocom febex_power_delay/${SIDE}/sfp${CRATE} -b 115200 --raise-dtr --raise-rts -r -t ${STATE} -x 0 -q 
+    CMD="ssh landgw01 ssh e12exp@${SLOWCONTROL} picocom shared/febexcrates/${SIDE}/sfp${CRATE} -b 115200 --raise-dtr --raise-rts -r -t ${STATE} -x 0 -q "
+    echo running $CMD
+    $CMD
 }
 
 ACTION=""
