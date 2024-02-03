@@ -8,7 +8,6 @@
 ##############################################
 
 
-
 if test "$0" == "/bin/bash" # we are invoked by --rcfile from ssh
 then
     cd $(dirname ${BASH_SOURCE[0]})/../mbs
@@ -21,7 +20,8 @@ then
     EXEC=""
 else # we are invoked by a subsequent call via ./mbs
     INITARGS="$@"
-    EXEC=exec
+    #EXEC=exec
+    EXEC=exec # use resl
 fi
 
 bash pexheal.sh
@@ -31,4 +31,4 @@ export LD_PRELOAD=$PWD/libreuse/libreuse.so
 #export NOWR 1
 #ulimit -c unlimited # unfortunately does not affect m_read_meb
 make && make -sC ../config/ commit && python init.py ${INITARGS} && touch .running && $EXEC $MBSBIN/m_dispatch -dabc
-
+$MBSBIN/m_remote reset -l

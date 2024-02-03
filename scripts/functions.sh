@@ -23,13 +23,13 @@ function check_daq_pc
 
 function mbs_send
 {
-    echo "waiting to send $@ to mbs..."
+    echo "waiting to send '$*' to mbs..."
     # wait for the connection to become available
     while ! nc $MBSPC 6019 -q 0 </dev/null &>/dev/null
     do
         sleep 1
     done
-    mbscmd $MBSPC -cmd "$@"
+    mbscmd $MBSPC -cmd "$*"
 }
 
 
