@@ -6,7 +6,15 @@
 # Max Winkel <max.winkel@ph.tum.de>
 # 2016, Apr 11
 ##############################################
-
+EXE=$(readlink -f $0)
+cd $(dirname $EXE)/..
+TARGET=lxir133.gsi.de
+if test "$(hostname)" != "$TARGET"
+then
+	echo "sshing to $TARGET"
+	exec ssh -tt $TARGET $EXE $@
+	exit $!
+fi
 
 if [[ "$#" -ne "0" ]]; then
 	echo "Usage: $0 " >&2
@@ -14,6 +22,8 @@ if [[ "$#" -ne "0" ]]; then
 fi
 
 source config/local_settings.sh
+
+ln -s  empty ucesb/empty/haecksler.${SIDE} 2&>/dev/null
 
 HOSTNO=$(echo $MBSPC | sed -E 's/x86l?-//g' )
 
@@ -61,7 +71,9 @@ while true; do
 	# --eb-time-stitch=500
 	# was --serve=stream --server=trans:6000 
 	#
-        ucesb/empty/empty --colour=yes --eventbuilder=${WRTS_SUB_ID}  stream://$HOST:$SRCPORT --server=size=100Mi,trans:$PORT_TRANS,flush=1 --server=size=100Mi,stream:$PORT_STREAM,flush=1 2>&1 |  scripts/rate-limit.py &
+        CMD="ucesb/empty/haecksler.${SIDE} --colour=yes --eventbuilder=${WRTS_SUB_ID}  trans://$HOST:$SRCPORT --server=size=100Mi,trans:$PORT_TRANS,flush=1 --server=size=100Mi,stream:$PORT_STREAM,flush=1"
+	echo "running $CMD"
+       	$CMD 2>&1 #|  scripts/rate-limit.py &
         # TODO: write output to file
         
 #	/u/land/landexp/202103_s455/califa_ucesb/empty/empty --califa=0xb00,91,10.99.2.27 trans://$HOST --server=trans:$PORT_TRANS --server=stream:$PORT_STREAM &
