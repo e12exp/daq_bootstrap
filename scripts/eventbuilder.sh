@@ -23,7 +23,7 @@ fi
 
 source config/local_settings.sh
 
-ln -s  empty ucesb/empty/haecksler.${SIDE} 2&>/dev/null
+ln -fvs  empty ucesb/empty/haecksler.${SIDE}
 
 HOSTNO=$(echo $MBSPC | sed -E 's/x86l?-//g' )
 
